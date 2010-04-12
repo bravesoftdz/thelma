@@ -1,0 +1,67 @@
+<!DOCTYPE Time2HELPProject_1_0>
+<Time2HELPProject_1_0 Name="Thelma Library Reference">
+   <Properties>
+      <Property Name="Name">Thelma Library Reference</Property>
+      <Property Name="Title">Thelma Library Reference</Property>
+      <Property Name="CompilerVersion">delphi7</Property>
+      <Property Name="PropagatePropertyDocumentation">0</Property>
+   </Properties>
+   <Delphi>
+      <SourceDirectories>
+         <SourceDirectory Name="Main" SourceDir="U:\thelma\source" DocDir="U:\thelma\doc">
+            <File>dates.pas</File>
+            <File>genutils.pas</File>
+            <File>ifile.pas</File>
+            <File>matrix.pas</File>
+            <File>tmpfiles.pas</File>
+            <File>ts.pas</File>
+            <File>tsprocess.pas</File>
+            <File>interpol.pas</File>
+            <File>tsevap.pas</File>
+            <File>prob.pas</File>
+            <File>dkmath.pas</File>
+            <File>tsdblmass.pas</File>
+            <File>rnd.pas</File>
+            <File>montecarlo.pas</File>
+            <File>statprocesses.pas</File>
+            <File>stat2.pas</File>
+            <File>tsidf.pas</File>
+            <File>istrutils.pas</File>
+            <File>hydromodel.pas</File>
+            <File>tshydraulics.pas</File>
+            <File>geotrans.pas</File>
+         </SourceDirectory>
+      </SourceDirectories>
+      <ComponentImageFiles>
+         <File>U:\thelma\source\ts.dcr</File>
+      </ComponentImageFiles>
+   </Delphi>
+   <Outputs>
+      <Output Name="WinHelp" Engine="WinHelp">
+         <Properties>
+            <Property Name="MaxVisibility">PROTECTED</Property>
+            <Property Name="Implementation">0</Property>
+            <Property Name="IncludePMEKeywords">Yes</Property>
+            <Property Name="IncludeIntopicPMEList">1</Property>
+            <Property Name="KWF">No</Property>
+            <Property Name="HPJFilename">u:\thelma\help\thelma.HPJ</Property>
+            <Property Name="BuildMapFiles">0</Property>
+         </Properties>
+      </Output>
+      <Output Name="PlainHTML" Engine="PlainHTML">
+         <Properties>
+            <Property Name="MaxVisibility">protected</Property>
+            <Property Name="Implementation">0</Property>
+            <Property Name="UsePNG">1</Property>
+            <Property Name="BGColor_Top">#FFFF00</Property>
+            <Property Name="BGColor_Body">#FFFFFF</Property>
+         </Properties>
+      </Output>
+      <Output Name="HTMLHelp" Engine="HTMLHelp">
+         <Properties>
+            <Property Name="MaxVisibility">public</Property>
+            <Property Name="DefaultTopicType">standard</Property>
+         </Properties>
+      </Output>
+   </Outputs>
+</Time2HELPProject_1_0>

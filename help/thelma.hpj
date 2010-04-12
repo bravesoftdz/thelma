@@ -1,0 +1,42 @@
+[OPTIONS]
+HCW=0
+Title=Thelma Library Reference
+COPYRIGHT=thelma   © National Technical University of Athens. Help file last compiled %date.
+HLP=.\thelma.hlp
+BMROOT=C:\Program Files\DLogikk\Time2HELP\Templates\Delphi\WinHelp\images
+BMROOT=WinHelp\images
+BMROOT=WinHelp\images\
+BMROOT=C:\Program Files\Time2HELP\Templates\Delphi\WinHelp\images
+BMROOT=U:\thelma\help\WinHelp\images\
+BMROOT=Z:\thelma\help\WinHelp\images\
+BMROOT=C:\Temp\thelma\help\WinHelp\images\
+[FILES]
+U:\thelma\help\LocalCache\WinHelp\rtf\_#Thelma Library Reference_Overview.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\dates.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\genutils.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\ifile.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\matrix.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\tmpfiles.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\ts.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\tsprocess.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\interpol.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\tsevap.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\prob.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\dkmath.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\tsdblmass.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\rnd.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\montecarlo.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\statprocesses.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\stat2.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\tsidf.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\istrutils.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\hydromodel.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\tshydraulics.rtf
+U:\thelma\help\LocalCache\WinHelp\rtf\geotrans.rtf
+[WINDOWS]
+main="",(333,16,655,749),60676,(r14876671),,f2
+Example="Examples",(653,102,420,600),20736,(r14876671),(r12632256),f3
+pme="Properties, Methods and Events",(5,5,280,750),4,,(192,192,192),f2
+[CONFIG]
+BrowseButtons()
+[Map]

@@ -1,0 +1,9 @@
+:Base thelma.hlp>main
+:Title Thelma Library Reference
+
+1 Thelma Library Reference
+3 Units=IDH_Library_Thelma_Library_Reference_Units
+3 Classes=IDH_Library_Thelma_Library_Reference_Classes
+3 Other Types=IDH_Library_Thelma_Library_Reference_OtherTypes
+3 Routines=IDH_Library_Thelma_Library_Reference_Routines
+3 Global Constants=IDH_Library_Thelma_Library_Reference_Constants
