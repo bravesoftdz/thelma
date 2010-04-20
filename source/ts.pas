@@ -637,10 +637,11 @@ type
         the specified nominal timestamp.
     }
     function IntervalMidPoint(ANominalTimestamp: TDateTime): TDateTime;
-    {**
+    {** Returns a string containg a comma separated list with flags been used.
     }
     property FlagsUsed: string read GetFlagsUsed;
-    {**
+    {** Returns a string containg a comma separated list with all possible
+        flags that can be selected.
     }
     property SelectionFlags: string read GetSelectionFlags;
     {** Name field of a timeseries record stored into the database.
@@ -745,6 +746,14 @@ type
         @SeeAlso <See Property=TimeStepStrict>
     }
     property DateOffset: Real read GetDateOffset write SetDateOffset;
+    {** Tries to guess nominal offset for an irregular time series.
+        Reads all the records and returns an offset in integer minutes.
+        The offset will mach the majority of the records.
+        Specify the desired time step in minutes in AStepMinutes.
+        If TimeStep>tstMonthly then it raises exception. For Strict
+        time steps it returns the nominal offset property (in minutes).
+    }
+    function GuessNominalOffset(AStepMinutes: Integer): Integer;
     {** A pair of integers indicating the number of minutes and months that must
         be added to a round timestamp to get to the nominal timestamp.
         For example, if an hourly time series has timestamps that end in :13,
@@ -2117,6 +2126,39 @@ begin
     raise Exception.Create(rsChangingNominalOffsetNotAllowedFor);
   FNominalOffset := AOffset;
   FTimestepStrict := True;
+end;
+
+resourcestring
+  rsInOrderToGuessOffset = 'In order to guess nominal offset, time step ' +
+                           'length should less than monthly .';
+
+function TTimeseries.GuessNominalOffset(AStepMinutes: Integer): Integer;
+var
+  i: Integer;
+  no: array[0..1439] of Integer;
+  ts, d, e: Int64;
+begin
+  if TimeStep>=tstMonthly then
+    raise Exception.Create(rsInOrderToGuessOffset);
+  if TimeStepStrict then
+  begin
+    Result := NominalOffset.Minutes;
+    Exit;
+  end;
+  Result := 0;
+  if AStepMinutes = 0 then Exit;
+  ts := AStepMinutes;
+  for i := 0 to 1439 do no[i] := 0;
+  for i := 0 to Count -1 do
+  begin
+    d := Round(DateTimeToC(Items[i].Date)*1440);
+    e := d mod ts;
+    if (e>=0) and (e<1440) then
+      Inc(no[e]);
+  end;
+  for i := 0 to 1439 do
+    if no[i]>no[Result] then
+      Result := i;
 end;
 
 resourcestring
