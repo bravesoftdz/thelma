@@ -475,6 +475,9 @@ type
         instead of a space.
     }
     procedure SetAllFlags(Flags: string; Delimiter: Char); overload;
+    {** Read the owner (time series) of the record.
+    }
+    property Owner: TTimeseries read FOwner;
   end;
 
   { TTimeseries }
