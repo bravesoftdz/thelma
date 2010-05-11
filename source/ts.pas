@@ -2946,22 +2946,24 @@ end;
 
 function TTimeseries.SenseVersion(AFileName: string): Integer;
 var
-  F: TextFile;
-  SavedFileMode: Integer;
   s: string;
+  AFileStream: TFileStream;
+  AStreamReader: TStreamReader;
 begin
   Result := 1;
-  SavedFileMode := FileMode;
+  AFileStream := nil;
+  AStreamReader := nil;
   try
-    FileMode := fmOpenRead or fmShareDenyWrite;
-    AssignFile(F, AFileName);
-    Reset(F);
-    ReadLn(F, s);
+    AFileStream := TFileStream.Create(AFileName,
+      fmOpenRead or fmShareDenyWrite);
+    AFileStream.Seek(0,0);
+    AStreamReader := TStreamReader.Create(AFileStream, TEncoding.UTF8);
+    s := AStreamReader.ReadLine;
     s := LowerCase(s);
     if StrPos(PChar(s), 'version=2')<> nil then Result := 2;
-    Close(F);
   finally
-    FileMode := SavedFileMode;
+    AStreamReader.Free;
+    AFileStream.Free;
   end;
 end;
 
