@@ -599,10 +599,13 @@ type
         so that the number of records chagnes, it calls all FullInvalidators.
     }
     FullInvalidators: TArrayOfMethod;
-    {**
+    {** Add FlagString to the flag string array holding all time series
+        used by Time series.
+        AddToFlagList returns the index of the added string to
+        the flag string array.
     }
     function AddToFlagList(FlagString: string): Integer;
-    {**
+    {** Read the AIndex flag string from the flag string array.
     }
     function GetFromFlagList(AIndex: Integer): string;
     {** Return the first nominal timestamp that is equal or later than
@@ -658,12 +661,12 @@ type
     property TimeStepName: string read FTimeStepName write FTimeStepName;
 
     {** The number of data in the time series.
-	Count is the number of entries in the Items array.
-	@SeeAlso <See Method=CountNotNull>
+        Count is the number of entries in the Items array.
+        @SeeAlso <See Method=CountNotNull>
     }
     property Count: Integer read GetCount;
     {** Time series data.
-	Items is an array of TTsRecord objects, each of which holds a record.<p>
+        Items is an array of TTsRecord objects, each of which holds a record.<p>
         Normally you don't need to use Items; you can merely write
         TimeseriesObject[i]. }
     property Items[Index: Integer]: TTsRecord read Get; default;
@@ -1430,7 +1433,11 @@ procedure Aggregate(Dest, Missing: TTimeseries;Options: TAggregationOptionsRec;
     function GetSectionCount: Integer;
     function GetCount: Integer;
     function GetDateOffset: Real;
+    function GetNominalOffset: TDateOffset;
+    function GetActualOffset: TDateOffset;
     procedure SetDateOffset(Value: Real);
+    procedure SetNominalOffset(AOffset: TDateOffset);
+    procedure SetActualOffset(AOffset: TDateOffset);
     function IsDateOffsetUnspecified: Boolean;
     procedure SetDateOffsetUnspecified(Value: Boolean);
     function IsTimeStepStrict: Boolean;
@@ -1502,6 +1509,14 @@ procedure Aggregate(Dest, Missing: TTimeseries;Options: TAggregationOptionsRec;
         @SeeAlso <See Property=TTimeseries.DateOffset>
     }
     property DateOffset: Real read GetDateOffset write SetDateOffset;
+    {** Specifies the nominal offset of the time stamps.
+    }
+    property NominalOffset: TDateOffset read GetNominalOffset
+      write SetNominalOffset;
+    {** Specifies the actual offset of the time series.
+    }
+    property ActualOffset: TDateOffset read GetActualOffset
+      write SetActualOffset;
     {** Specifies whether the date offset is specified.
         @SeeAlso <See Property=TTimeseries.DateOffsetUnspecified>
     }
@@ -1678,11 +1693,11 @@ procedure Aggregate(Dest, Missing: TTimeseries;Options: TAggregationOptionsRec;
     {** Writes meta and data information to a stream.
     }
     procedure WriteToStream(AStream: TStream; ProgressIndicator:
-      TProgressIndicator = nil);
+      TProgressIndicator = nil; FileVersion: Integer=2);
     {** Uses WriteToStream in order to write a text file via a TFileStream.
     }
     procedure WriteToFile(AFileName: string;
-       ProgressIndicator: TProgressIndicator = nil);
+       ProgressIndicator: TProgressIndicator = nil; FileVersion: Integer=2);
     {** Loads Meta and (multiple section) Data from a Stream.
         LoadFromStream method clears all data stored into a TMultiTimeseries
         object, then retrieves data from Stream.
@@ -1690,11 +1705,11 @@ procedure Aggregate(Dest, Missing: TTimeseries;Options: TAggregationOptionsRec;
         WriteToStream method does when writing.
     }
     procedure LoadFromStream(AStream: TStream; ProgressIndicator:
-      TProgressIndicator = nil);
+      TProgressIndicator = nil; FileVersion: Integer=2);
     {** Uses LoadFromStream method in order to read from text file.
     }
     procedure LoadFromFile(AFileName: string; ProgressIndicator:
-      TProgressIndicator = nil);
+      TProgressIndicator = nil; FileVersion: Integer=0);
     {** Forces the multi time series to rearrange its sections so that
         each section has the same length with the given number of
         records, irrespective of the initial number of sections and length.
@@ -4302,11 +4317,35 @@ begin
   Result := TTimeseries(FSectionList[0]).GetDateOffset;
 end;
 
+function TMultiTimeseries.GetActualOffset: TDateOffset;
+begin
+  Result := TTimeseries(FSectionList[0]).ActualOffset;
+end;
+
+function TMultiTimeseries.GetNominalOffset: TDateOffset;
+begin
+  Result := TTimeseries(FSectionList[0]).GetNominalOffset;
+end;
+
 procedure TMultiTimeseries.SetDateOffset(Value: Real);
 var i: Integer;
 begin
   for i := FSectionList.Count-1 downto 0 do
     TTimeseries(FSectionList[i]).SetDateOffset(Value);
+end;
+
+procedure TMultiTimeseries.SetNominalOffset(AOffset: TDateOffset);
+var i: Integer;
+begin
+  for i := FSectionList.Count-1 downto 0 do
+    TTimeseries(FSectionList[i]).SetNominalOffset(AOffset);
+end;
+
+procedure TMultiTimeseries.SetActualOffset(AOffset: TDateOffset);
+var i: Integer;
+begin
+  for i := FSectionList.Count-1 downto 0 do
+    TTimeseries(FSectionList[i]).ActualOffset := AOffset;
 end;
 
 function TMultiTimeseries.IsDateOffsetUnspecified: Boolean;
@@ -4501,7 +4540,7 @@ begin
 end;
 
 procedure TMultiTimeseries.WriteToStream(AStream: TStream;
-  ProgressIndicator: TProgressIndicator);
+  ProgressIndicator: TProgressIndicator; FileVersion: Integer);
 var
   AStreamWriter: TStreamWriter;
   i: Integer;
@@ -4510,7 +4549,7 @@ begin
   try
     if FSectionList.Count<1 then Exit;
     AStreamWriter := TStreamWriter.Create(AStream, TEncoding.Default);
-    Sections[1].WriteMeta(AStreamWriter);
+    Sections[1].WriteMeta(AStreamWriter, FileVersion);
     for i := 1 to FSectionList.Count do
     begin
       Sections[i].WriteData(AStreamWriter, ProgressIndicator);
@@ -4524,7 +4563,7 @@ begin
 end;
 
 procedure TMultiTimeseries.WriteToFile(AFileName: string;
-  ProgressIndicator: TProgressIndicator);
+  ProgressIndicator: TProgressIndicator; FileVersion: Integer);
 var
   AFileStream: TFileStream;
   AMemoryStream: TMemoryStream;
@@ -4534,7 +4573,7 @@ begin
   try
     AFileStream := TFileStream.Create(AFileName, fmCreate);
     AMemoryStream := TMemoryStream.Create;
-    WriteToStream(AMemoryStream, ProgressIndicator);
+    WriteToStream(AMemoryStream, ProgressIndicator, FileVersion);
     AMemoryStream.Seek(0,0);
     AFileStream.CopyFrom(AMemoryStream,0);
   finally
@@ -4544,7 +4583,7 @@ begin
 end;
 
 procedure TMultiTimeseries.LoadFromStream(AStream: TStream; ProgressIndicator:
-  TProgressIndicator = nil);
+  TProgressIndicator; FileVersion: Integer);
 var
   ATimeseries: TTimeseries;
   ADecimalSeparator, ADelimiter, AFlagDelimiter: Char;
@@ -4562,7 +4601,7 @@ begin
     ATimeseries := TTimeseries.Create;
     AStreamReader := TStreamReader.Create(AStream, TEncoding.Default);
     LineNo := ATimeseries.ReadMeta(AStreamReader, 1, ADecimalSeparator,
-      ADelimiter, AFlagDelimiter, ADateFormat);
+      ADelimiter, AFlagDelimiter, ADateFormat, FileVersion);
     AMemoryStream := nil;
     AStreamWriter := nil;
     repeat
@@ -4602,7 +4641,7 @@ begin
 end;
 
 procedure TMultiTimeseries.LoadFromFile(AFileName: string; ProgressIndicator:
-  TProgressIndicator = nil);
+  TProgressIndicator; FileVersion: Integer);
 var
   AFileStream: TFileStream;
   AMemoryStream: TMemoryStream;
@@ -4615,7 +4654,7 @@ begin
     AMemoryStream := TMemoryStream.Create;
     AMemoryStream.LoadFromStream(AFileStream);
     AMemoryStream.Seek(0,0);
-    LoadFromStream(AMemoryStream, ProgressIndicator);
+    LoadFromStream(AMemoryStream, ProgressIndicator, FileVersion);
   finally
     AFileStream.Free;
     AMemoryStream.Free;
