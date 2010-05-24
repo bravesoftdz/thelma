@@ -1116,11 +1116,6 @@ type
         time series wizard.
     }
     procedure LoadMetaFromFile(AFileName: string);
-    {** Reads file with filename AFileName and returns the version number.
-        Reads the first line of the file. If it is equal with "Version=2"
-        (w/o quotes) it returns 2 or else it returns 1.
-    }
-    function SenseVersion(AFileName: string): Integer;
     {** Writes the time series data to a stream.
         Use WriteData to write the timeseries data to a file, string, database
         large object, or any other stream. WriteData writes the data in
@@ -1742,6 +1737,12 @@ procedure Aggregate(Dest, Missing: TTimeseries;Options: TAggregationOptionsRec;
 }
 function IncTimeStep(const date1: TDateTime; ATimeStep:TTimeStep;
   nrOfSteps: Integer = 1): TDateTime;
+
+{** Reads file with filename AFileName and returns the version number.
+    Reads the first line of the file. If it is equal with "Version=2"
+    (w/o quotes) it returns 2 or else it returns 1.
+}
+function SenseTimeseriesVersion(AFileName: string): Integer;
 
 implementation
 
@@ -2918,7 +2919,7 @@ var
   AMemoryStream: TMemoryStream;
 begin
   Assert(FileVersion in [0,1,2]);
-  if FileVersion = 0 then FileVersion := SenseVersion(AFileName);
+  if FileVersion = 0 then FileVersion := SenseTimeseriesVersion(AFileName);
   AFileStream := nil;
   AMemoryStream := nil;
   try
@@ -2942,7 +2943,7 @@ var
   AMemoryStream: TMemoryStream;
   FileVersion: Integer;
 begin
-  FileVersion := SenseVersion(AFileName);
+  FileVersion := SenseTimeseriesVersion(AFileName);
   AFileStream := nil;
   AMemoryStream := nil;
   try
@@ -2959,7 +2960,7 @@ begin
   end;
 end;
 
-function TTimeseries.SenseVersion(AFileName: string): Integer;
+function SenseTimeseriesVersion(AFileName: string): Integer;
 var
   s: string;
   AFileStream: TFileStream;
@@ -4381,7 +4382,12 @@ procedure TMultiTimeseries.SetTimeStep(Value: TTimeStep);
 var i: Integer;
 begin
   for i := FSectionList.Count-1 downto 0 do
-    TTimeseries(FSectionList[i]).SetTimeStep(Value);
+    with TTimeseries(FSectionList[i]) do
+    begin
+      SetTimeStep(Value);
+      if Value>=tstMonthly then
+        ActualOffset := TDateOffset.Create(0, Value.LengthMonths);
+    end;
 end;
 
 function TMultiTimeseries.GetVariableType: TVariableType;
@@ -4543,12 +4549,15 @@ procedure TMultiTimeseries.WriteToStream(AStream: TStream;
   ProgressIndicator: TProgressIndicator; FileVersion: Integer);
 var
   AStreamWriter: TStreamWriter;
+  ASavedTitle: string;
   i: Integer;
 begin
+  if FSectionList.Count<1 then Exit;
   AStreamWriter := nil;
   try
-    if FSectionList.Count<1 then Exit;
+    ASavedTitle := Sections[1].Title;
     AStreamWriter := TStreamWriter.Create(AStream, TEncoding.Default);
+    Sections[1].Title := FName;
     Sections[1].WriteMeta(AStreamWriter, FileVersion);
     for i := 1 to FSectionList.Count do
     begin
@@ -4559,6 +4568,7 @@ begin
   finally
     if AStreamWriter<>nil then AStreamWriter.Close;
     AStreamWriter.Free;
+    Sections[1].Title := ASavedTitle;
   end;
 end;
 
@@ -4627,6 +4637,7 @@ begin
         AMemoryStream := nil;
       end;
       if Count>0 then ATimeseries.AssignMeta(Sections[1]);
+      if Count>0 then FName := Sections[1].Title;
       AddSection(ATimeseries);
       ATimeseries := nil;
     until AStreamReader.EndOfStream;
@@ -4646,6 +4657,8 @@ var
   AFileStream: TFileStream;
   AMemoryStream: TMemoryStream;
 begin
+  Assert(FileVersion in [0,1,2]);
+  if FileVersion = 0 then FileVersion := SenseTimeseriesVersion(AFileName);
   AFileStream := nil;
   AMemoryStream := nil;
   try
