@@ -1732,12 +1732,6 @@ procedure Aggregate(Dest, Missing: TTimeseries;Options: TAggregationOptionsRec;
       Under construction. }
   TTimeseriesClass = class of TTimeseries;
 
-{** Returns the value of the date1 parameter,
-    incremented by nrOfSteps time steps.
-}
-function IncTimeStep(const date1: TDateTime; ATimeStep:TTimeStep;
-  nrOfSteps: Integer = 1): TDateTime;
-
 {** Reads file with filename AFileName and returns the version number.
     Reads the first line of the file. If it is equal with "Version=2"
     (w/o quotes) it returns 2 or else it returns 1.
@@ -4696,7 +4690,7 @@ var tempMTS: TMultiTimeSeries;
            for j:=newTS.Count to TTimeSeries(FSectionList[0]).Count-1 do
            begin
                 newTS.Add(date1,true,0,'',msNew);
-                date1 := IncTimeStep(date1, tempMTS.Timestep);
+                date1 := tempMTS.TimeStep.IncStep(date1)
            end;
          AddSection(newTS);
     end;
@@ -4727,7 +4721,7 @@ begin
                 with tempMTS.Records[i,j] do
                 begin
                   newTS.Add(date1, FIsNull, FValue, GetAllFlags, FMStatus);
-                  date1 := IncTimeStep(date1, tempMTS.Timestep);
+                  date1 := tempMTS.TimeStep.IncStep(date1)
                 end;
                 iRec := iRec + 1;
              end;
@@ -4775,7 +4769,7 @@ var date1:TDateTime;
            for j:=sect1.Count to TTimeSeries(FSectionList[0]).Count-1 do
            begin
               sect1.Insert(date1,true,0,'',msNew);
-              date1 := IncTimeStep(date1, ATimestep);
+              date1 := ATimestep.IncStep(date1);
            end;
          AddSection(sect1);
     end;
@@ -4794,7 +4788,7 @@ begin //getDataFromArray
                createSection;
           end;
           sect1.Insert(date1,false,RealArray[i],'',msNew);
-          date1 := IncTimeStep(date1, ATimestep);
+          date1 := ATimestep.IncStep(date1);
      end;
      FillAndAddSection; //last section
   except
@@ -4804,16 +4798,7 @@ begin //getDataFromArray
   end;
 end; //getDataFromArray
 
-(*******************************************************************)
-
-function IncTimeStep(const date1: TDateTime; ATimeStep:TTimeStep; nrOfSteps:
-  Integer = 1): TDateTime;
-begin
-  Result := ATimeStep.IncStep(date1, nrOfSteps);
-end;
-
 initialization
-
   tstFiveMinute := TTimestep.Create(5,0,7);
   tstVariable := TTimestep.Create(0,0,6);
   tstTenMinute := TTimestep.Create(10,0,1);
@@ -4839,7 +4824,6 @@ initialization
   tstFiveYear := TTimestep.Create(0,60,0);
   tstTenYear := TTimestep.Create(0,120,0);
   tstUnknown := TTimestep.Create(0,0,0);
-
 
   AvailableTimesteps[0] := tstFiveMinute;
   AvailableTimesteps[1] := tstTenMinute;
