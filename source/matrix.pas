@@ -46,12 +46,6 @@ unit Matrix;
     of some functionality by A. Christofides using the LAPACK library.
 }
 
-{ All "unsafe" warnings turned off. Turn them back on if you convert the code
-  to not use dynamic memory allocation (bug 1155).
-}
-{$WARN UNSAFE_TYPE OFF}
-{$WARN UNSAFE_CODE OFF}
-
 interface
 
 uses Classes, SysUtils, stat2, dkmath;
@@ -68,10 +62,7 @@ type
       @SeeAlso <See Class=TMatrix>
       @SeeAlso <See Type=PMatrixArray>
   }
-  TMatrixArray = array[0..maMaxSize-1] of Real;
-  {** Used internally to store a matrix.
-  }
-  PMatrixArray = ^TMatrixArray;
+  TMatrixArray = array of Real;
   {** Used internally to store an integer matrix.
       TMatrixIntArray is like TMatrixArray, but for integers. It is currently
       used internally in TIntVector.
@@ -79,10 +70,7 @@ type
       @SeeAlso <See Type=TIntVector>
       @SeeAlso <See Type=PMatrixIntArray>
   }
-  TMatrixIntArray = array[0..maMaxSize-1] of Integer;
-  {** Used internally to store a matrix.
-  }
-  PMatrixIntArray = ^TMatrixIntArray;
+  TMatrixIntArray = array of Integer;
   {** Used by TMatrix.CreateFromArray to specify array ownership.
       @SeeAlso <See Method=TMatrix.CreateFromArray>
   }
@@ -111,7 +99,7 @@ type
     FRowCount: Integer;
     FColCount: Integer;
     FOwnsElements: Boolean;
-    FElements: PMatrixArray;
+    FElements: TMatrixArray;
   protected
     function GetElement(i, j: Integer): Real;
     procedure SetElement(i, j: Integer; Value: Real);
@@ -119,131 +107,134 @@ type
   public
     {** Specifies the number of rows of the matrix.
         Read RowCount to determine the number of rows of the matrix.
-	@SeeAlso <See Property=ColCount>
-	@SeeAlso <See Method=Resize>
+        @SeeAlso <See Property=ColCount>
+        @SeeAlso <See Method=Resize>
     }
     property RowCount: Integer read FRowCount;
     {** Specifies the number of columns of the matrix.
         Read ColCount to determine the number of columns of the matrix.
-	@SeeAlso <See Property=RowCount>
-	@SeeAlso <See Method=Resize>
+        @SeeAlso <See Property=RowCount>
+        @SeeAlso <See Method=Resize>
     }
     property ColCount: Integer read FColCount;
     {** Used internally to specify whether the object owns the array.
         OwnsElements is used internally; for more information on this property,
-	see the CreateFromArray method.
-	@SeeAlso <See Method=CreateFromArray>
+        see the CreateFromArray method.
+        @SeeAlso <See Method=CreateFromArray>
     }
     property OwnsElements: Boolean read FOwnsElements;
     {** Returns or sets a matrix element.
-	Read or set E to access the element at row i and column j of the matrix.
-	Row and column numbering starts at 1. An attempt to use invalid
-	co-ordinates results in an exception.<p>
-	E is the default property, so normally you don't have to write
-	AMatrix.E[i,j]; use AMatrix[i,j] instead.
+        Read or set E to access the element at row i and column j of the matrix.
+        Row and column numbering starts at 1. An attempt to use invalid
+        co-ordinates results in an exception.<p>
+        E is the default property, so normally you don't have to write
+        AMatrix.E[i,j]; use AMatrix[i,j] instead.
     }
     property E[i, j: Integer]: Real read GetElement write SetElement; default;
     {** Returns the number of elements of the matrix.
         Size returns RowCount*ColCount.
-	@SeeAlso <See Property=RowCount>
-	@SeeAlso <See Property=ColCount>
+        @SeeAlso <See Property=RowCount>
+        @SeeAlso <See Property=ColCount>
     }
     property Size: Integer read GetSize;
     {** Copies a TMatrix object.
-	When assigning one matrix to another matrix, the destination
-	matrix gets a copy of the elements and is set to OwnsElements.
-	@author A.X.
-	@SeeAlso <See Property=OwnsElements>
+        When assigning one matrix to another matrix, the destination
+        matrix gets a copy of the elements and is set to OwnsElements.
+        @author A.X.
+        @SeeAlso <See Property=OwnsElements>
         @SeeAlso <Jump File=Delphi5.hlp K="TPersistent,Assign" Text=Assign>
     }
     procedure Assign(Source: TPersistent); override;
     {** Creates a TMatrix object.
-	Call Create to create a new TMatrix object.  TMatrix objects created
-	with the version of Create without arguments should not be used before
-	Resizing.
-	@SeeAlso <See Method=Resize>
-	@SeeAlso <See Method=CreateFromArray>
+        Call Create to create a new TMatrix object.  TMatrix objects created
+        with the version of Create without arguments should not be used before
+        Resizing.
+        @SeeAlso <See Method=Resize>
+        @SeeAlso <See Method=CreateFromArray>
     }
     constructor Create; overload;
     {** (Overloaded method - no need for title).
-	Call Create to create a new TMatrix object. Create does not initialize
-	the elements; to initialize them, use Fill or Zero.
-	@SeeAlso <See Method=Fill>
-	@SeeAlso <See Method=Zero>
+        Call Create to create a new TMatrix object. Create does not initialize
+        the elements; to initialize them, use Fill or Zero.
+        @SeeAlso <See Method=Fill>
+        @SeeAlso <See Method=Zero>
     }
     constructor Create(RowCount, ColCount: Integer); overload;
     {** Creates a TMatrix object using an existing one-dimensional array.
+        CreateFromArray is not implemented after change from pointer arrays
+        to dynamic arrays. Stefanos, 2010-06-03.
+        **Following help is obsolete:**
         Use CreateFromArray to create a TMatrix object from an existing
-	one-dimensional array. This may be useful for communication with other
-	applications via DLLs. RowCount and ColCount specify the array
-	dimensions. PArrayOfDouble contains the elements, starting from the
-	elements of the first row, then the elements of the second row, and so
-	on.<p>
-	Method specifies whether the array pointed to by PArrayOfDouble will be
-	copied, owned, or not owned. If Method is maCopyArray, then the created
-	TMatrix object will create a copy of the array which it will use
-	internally to store the elements. If it is maOwnArray or maDontOwnArray,
-	it will use the original array itself.<p>
-	In the case of maOwnArray, the created object becomes the owner of the
-	memory allocated for the original array. When the object is destroyed,
-	it will also attempt to free the memory occupied by the array, using
-	FreeMem. Thus, maOwnArray should not be used unless the memory for the
-	array has been dynamically allocated, or a mess will occur when
-	the object is destroyed.<p>
-	In the case of maDontOwnArray, the created object will not own the
-	memory allocated for the original array. When it is destroyed, it will
-	not free the array. In addition, an attempt to Resize the matrix will
-	raise an exception.<p>
-	@author D.K.,A.X.
-	@SeeAlso <See Method=Create>
-	@SeeAlso <See Property=OwnsElements>
-	@SeeAlso <See Method=Resize>
+        one-dimensional array. This may be useful for communication with other
+        applications via DLLs. RowCount and ColCount specify the array
+        dimensions. PArrayOfDouble contains the elements, starting from the
+        elements of the first row, then the elements of the second row, and so
+        on.<p>
+        Method specifies whether the array pointed to by PArrayOfDouble will be
+        copied, owned, or not owned. If Method is maCopyArray, then the created
+        TMatrix object will create a copy of the array which it will use
+        internally to store the elements. If it is maOwnArray or maDontOwnArray,
+        it will use the original array itself.<p>
+        In the case of maOwnArray, the created object becomes the owner of the
+        memory allocated for the original array. When the object is destroyed,
+        it will also attempt to free the memory occupied by the array, using
+        FreeMem. Thus, maOwnArray should not be used unless the memory for the
+        array has been dynamically allocated, or a mess will occur when
+        the object is destroyed.<p>
+        In the case of maDontOwnArray, the created object will not own the
+        memory allocated for the original array. When it is destroyed, it will
+        not free the array. In addition, an attempt to Resize the matrix will
+        raise an exception.<p>
+        @author D.K.,A.X.
+        @SeeAlso <See Method=Create>
+        @SeeAlso <See Property=OwnsElements>
+        @SeeAlso <See Method=Resize>
     }
     constructor CreateFromArray(RowCount, ColCount: Integer;
       PArrayOfDouble: Pointer; Method: TCreateFromArrayMethod);
     {** Destroys the TMatrix object.
         Do not use Destroy; use Free instead, which checks if the object
-	reference is nil.
+        reference is nil.
         @SeeAlso <Jump File=Delphi5.hlp K="TObject,Free" Text=TObject.Free>
     }
     destructor Destroy; override;
     {** Returns the matrix in ASCII format.
         Use Ascii when debugging your application, to easily view the contents
-	of the matrix.
-	@author D.K.
-	@SeeAlso <See Method=BriefInfo>
+        of the matrix.
+        @author D.K.
+        @SeeAlso <See Method=BriefInfo>
     }
     function Ascii: string;
     {** Returns brief debugging information on the matrix.
         Use BriefInfo when debugging your application, to view the matrix's
-	dimensions and corner elements.
-	@author D.K.
-	@SeeAlso <See Method=Ascii>
+        dimensions and corner elements.
+        @author D.K.
+        @SeeAlso <See Method=Ascii>
     }
     function BriefInfo: string;
     {** Extracts a row from the matrix.
         Use GetRow to extract the ith row of the matrix into AVector, whose
-	original contents are replaced.
-	@author D.K.
-	@SeeAlso <See Method=GetColumn>
+        original contents are replaced.
+        @author D.K.
+        @SeeAlso <See Method=GetColumn>
     }
     procedure GetRow(AVector: TVector; i: Integer);
     {** Extracts a column from the matrix.
         Use GetColumn to extract the jth row of the matrix into AVector, whose
-	original contents are replaced.
-	@author D.K.
-	@SeeAlso <See Method=GetRow>
+        original contents are replaced.
+        @author D.K.
+        @SeeAlso <See Method=GetRow>
     }
     procedure GetColumn(AVector: TVector; j: Integer);
     {** Shifts a submatrix within the matrix.
-	Use Shift to shift the submatrix specified by StartRow, StartCol, EndRow
-	and EndCol. The submatrix is shifted downward by ShiftRows and rightward
-	by ShiftCols; to shift to the opposite direction, use negative values
-	for ShiftRows and/or ShiftCols. Elements that are not overwritten by the
-	shifting remain unchanged (including not overwritten elements of the
-	original submatrix). If after shifting the submatrix would reach outside
-	the matrix boundaries, an exception is raised. 
-	@author A.X.
+        Use Shift to shift the submatrix specified by StartRow, StartCol, EndRow
+        and EndCol. The submatrix is shifted downward by ShiftRows and rightward
+        by ShiftCols; to shift to the opposite direction, use negative values
+        for ShiftRows and/or ShiftCols. Elements that are not overwritten by the
+        shifting remain unchanged (including not overwritten elements of the
+        original submatrix). If after shifting the submatrix would reach outside
+        the matrix boundaries, an exception is raised.
+        @author A.X.
     }
     procedure Shift(StartRow, StartCol, EndRow, EndCol, ShiftRows,
       ShiftCols: Integer);
@@ -260,92 +251,92 @@ type
       i, StartCol, Interval: integer);
     {** Extracts a vector from a column with specific starting row and interval.
         ExtractVectorFromColumn extracts a vector from the matrix into AVector,
-	whose original contents are replaced. The vector extracted consists of
-	elements of column i starting at row StartRow and continuing every
-	Interval elements.
-	@author D.K.
-	@SeeAlso <See Method=ExtractVectorFromRow>
+        whose original contents are replaced. The vector extracted consists of
+        elements of column i starting at row StartRow and continuing every
+        Interval elements.
+        @author D.K.
+        @SeeAlso <See Method=ExtractVectorFromRow>
         @SeeAlso <See Method=GetColumn>
     }
     procedure ExtractVectorFromColumn(AVector: TVector;
       j, StartRow, Interval: integer);
     {** Changes the dimensions of a matrix.
         Call Resize to change the dimensions of a matrix. If NewRowCount or
-	NewColCount is less than RowCount or ColCount, the excess rows or
-	columns are cropped; if greater than RowCount or ColCount, the new extra
-	rows or columns are filled with zero.
+        NewColCount is less than RowCount or ColCount, the excess rows or
+        columns are cropped; if greater than RowCount or ColCount, the new extra
+        rows or columns are filled with zero.
 	@author D.K., A.X.
     }
     procedure Resize(NewRowCount, NewColCount: Integer);
     {** Assigns the same value to all elements of the matrix.
         Use Fill to assign Value to all elements of the matrix.
-	@SeeAlso <See Method=Zero>
+        @SeeAlso <See Method=Zero>
     }
     procedure Fill(Value: Real);
     {** Assigns zero to all the elements of the matrix.
         Zero is the same as Fill(0.0). The use of Zero is deprecated; use Fill
-	instead.
-	@SeeAlso <See Method=Fill>
+        instead.
+        @SeeAlso <See Method=Fill>
     }
     procedure Zero;
     {** Copies a submatrix of a matrix.
         Use CopyFrom to copy the submatrix of Source whose top-left element is
-	at (SourceStartRow, SourceStartCol) into this matrix, starting at
-	(DestStartRow, DestStartCol). If the copied subset would reach outside
-	the dimensions of the matrix, an exception is raised.
-	@author D.K.
+        at (SourceStartRow, SourceStartCol) into this matrix, starting at
+        (DestStartRow, DestStartCol). If the copied subset would reach outside
+        the dimensions of the matrix, an exception is raised.
+        @author D.K.
     }
     procedure CopyFrom(Source: TMatrix; SourceStartRow, SourceStartCol,
       RowCount, ColCount, DestStartRow, DestStartCol: Integer);
     {** Performs matrix addition.
-	Use Add to add AMatrix to this matrix, which is overwritten. AMatrix and
-	this matrix must have the same dimensions, or an exception is raised.
-	@author A.X.
-	@SeeAlso <See Method=Subtract>
+        Use Add to add AMatrix to this matrix, which is overwritten. AMatrix and
+        this matrix must have the same dimensions, or an exception is raised.
+        @author A.X.
+        @SeeAlso <See Method=Subtract>
     }
     procedure Add(AMatrix: TMatrix);
     {** Performs matrix subtraction.
         Use Subtract to perform matrix subtraction. If OperandPosition is
-	maLeft, (AMatrix)-(this matrix) is performed; if OperandPosition is
-	maRight, (this matrix)-(AMatrix) is performed. The result overwrites
-	this matrix. The two matrices must have the same dimensions, or an
-	exception is raised.
-	@author A.X.
-	@SeeAlso <See Method=Add>
+        maLeft, (AMatrix)-(this matrix) is performed; if OperandPosition is
+        maRight, (this matrix)-(AMatrix) is performed. The result overwrites
+        this matrix. The two matrices must have the same dimensions, or an
+        exception is raised.
+        @author A.X.
+        @SeeAlso <See Method=Add>
     }
     procedure Subtract(AMatrix: TMatrix; OperandPosition: TOperandPosition);
     {** Multiplies the matrix with a scalar.
         Use ScalarMultiply to multiply the matrix with Scalar. The result
-	overwrites the matrix.
-	@author D.K.
+        overwrites the matrix.
+        @author D.K.
     }
     procedure ScalarMultiply(Scalar: Real);
     {** Performs matrix multiplication.
         Use Multiply to perform matrix multiplication. If OperandPosition is
-	maLeft, (AMatrix)*(this matrix) is performed; if OperandPosition is
-	maRight, (this matrix)*(AMatrix) is performed. The result overwrites
-	this matrix. The RowCount of the matrix on the left must equal the
-	ColCount of the matrix on the right, or an exception is raised.
-	@author D.K.,A.X.
-	@SeeAlso <See Method=Add>
+        maLeft, (AMatrix)*(this matrix) is performed; if OperandPosition is
+        maRight, (this matrix)*(AMatrix) is performed. The result overwrites
+        this matrix. The RowCount of the matrix on the left must equal the
+        ColCount of the matrix on the right, or an exception is raised.
+        @author D.K.,A.X.
+        @SeeAlso <See Method=Add>
     }
     procedure Multiply(AMatrix: TMatrix; OperandPosition: TOperandPosition);
     {** Raises the matrix to an integer exponent.
         Use ScalarIntPower to raise all elements of the matrix to Exponent. The
-	matrix is overwritten with the result.
-	@author D.K.
+        matrix is overwritten with the result.
+        @author D.K.
     }
     procedure ScalarIntPower(Exponent: Integer);
     {** Transposes the matrix.
         Use Transpose to transpose the matrix. The result overwrites the
-	original matrix.
+        original matrix.
     }
     procedure Transpose; virtual;
     {** Calculates the inverse of a square matrix.
         Use Invert to invert a square matrix and overwrite the matrix with its
-	inverse. If the matrix is not square, Exception is raised; if it is not
-	invertible, EZeroDivide is raised; if there is not enough memory,
-	EOutOfMemory is raised.<p>
+        inverse. If the matrix is not square, Exception is raised; if it is not
+        invertible, EZeroDivide is raised; if there is not enough memory,
+        EOutOfMemory is raised.<p>
         The implementation of Invert is based on functions dgetri and dtrti2
         of the LAPACK library (http://www.netlib.org/lapack/).  Note that the
         LAPACK library also has a "blocked" version of the algorithm, which is
@@ -355,12 +346,12 @@ type
     procedure Invert;
     {** Returns the number of elements that are greater than a threshold.
         Use CountLarger to determine the number of elements of the matrix that
-	are greater than Threshold.
+        are greater than Threshold.
     }
     function CountLarger(Threshold: Real): LongInt;
     {** Determines whether the matrix is symmetric.
         Use IsSymmetric to determine whether the matrix is symmetric.
-	@author D.K.
+        @author D.K.
     }
     function IsSymmetric: Boolean;
     {** Performs LU decomposition.
@@ -373,97 +364,93 @@ type
         diagonal elements of L are not stored). Ipiv is a size N output vector
         containing the pivot indices; that is, row i of the matrix was
         interchanged with row Ipiv(i).<p>
-        For theory on LuDecompose, see Press et al., Numerical Recipes in C,
-        Second Edition, Cambridge University Press, 1992, pages 43-46. The
-        implementation of this method is based on the dgetf2 function of
+        The implementation of this method is based on the dgetf2 function of
         the LAPACK library (http://www.netlib.org/lapack/).
         Note that the LAPACK library also has a "blocked" version of the
         algorithm, which is presumably faster; but this implementation only
         implements the unblocked version.
-	@author A.X.
-	@SeeAlso <See Method=Invert>
+        @author A.X.
+        @SeeAlso <See Method=Invert>
     }
     procedure LuDecompose(var Ipiv: TIntVector);
     {** Performs Cholesky decomposition of a positive-definite symmetric matrix.
         CholeskyDecompose replaces the matrix with its Cholesky decomposition
         L, such that A=L*L' and L is lower triangular.<p>
-	For more information on CholeskyDecompose, see Press et al., Numerical
-	Recipes in C, Second Edition, Cambridge University Press, 1992, pages
-        96-98. The implementation of this method is based on the dpotf2
+        The implementation of this method is based on the dpotf2
         function of the LAPACK library (http://www.netlib.org/lapack/).  Note
         that the LAPACK library also has a "blocked" version of the algorithm,
         which is presumably faster; but this implementation only implements
         the unblocked version.
-	@author A.X.
+        @author A.X.
     }
     procedure CholeskyDecompose;
     {** Checks whether the matrix is lower triangular.
         IsLowerTriangular returns True if the matrix is lower triangular, and
-	False in all other cases, including when the matrix is not square.
+        False in all other cases, including when the matrix is not square.
         @author A.X.
-	@SeeAlso <See Method=IsUpperTriangular>
+        @SeeAlso <See Method=IsUpperTriangular>
     }
     function IsLowerTriangular: Boolean;
     {** Checks whether the matrix is upper triangular.
         IsUpperTriangular returns True if the matrix is upper triangular, and
-	False in all other cases, including when the matrix is not square.
+        False in all other cases, including when the matrix is not square.
         @author A.X.
-	@SeeAlso <See Method=IsLowerTriangular>
+        @SeeAlso <See Method=IsLowerTriangular>
     }
     function IsUpperTriangular: Boolean;
     {** Calculates the mean value of the matrix's elements.
         @author D.K.
-	@SeeAlso <See Method=Variance>
-	@SeeAlso <See Method=Moment>
-	@SeeAlso <See Method=Skewness>
-	@SeeAlso <See Method=Kurtosis>
-	@SeeAlso <See Method=Variation>
+        @SeeAlso <See Method=Variance>
+        @SeeAlso <See Method=Moment>
+        @SeeAlso <See Method=Skewness>
+        @SeeAlso <See Method=Kurtosis>
+        @SeeAlso <See Method=Variation>
     }
     function Mean: Real;
     {** Calculates the variance of the matrix's elements.
         @author D.K.
-	@SeeAlso <See Method=Mean>
-	@SeeAlso <See Method=Moment>
-	@SeeAlso <See Method=Skewness>
-	@SeeAlso <See Method=Kurtosis>
-	@SeeAlso <See Method=Variation>
+        @SeeAlso <See Method=Mean>
+        @SeeAlso <See Method=Moment>
+        @SeeAlso <See Method=Skewness>
+        @SeeAlso <See Method=Kurtosis>
+        @SeeAlso <See Method=Variation>
     }
     function Variance: Real;
     {** Calculates the moment of the specified order of the matrix's elements.
         @author D.K.
-	@SeeAlso <See Method=Mean>
-	@SeeAlso <See Method=Variance>
-	@SeeAlso <See Method=Skewness>
-	@SeeAlso <See Method=Kurtosis>
-	@SeeAlso <See Method=Variation>
+        @SeeAlso <See Method=Mean>
+        @SeeAlso <See Method=Variance>
+        @SeeAlso <See Method=Skewness>
+        @SeeAlso <See Method=Kurtosis>
+        @SeeAlso <See Method=Variation>
     }
     function Moment(Order: Integer): Real;
     {** Calculates the variation of the matrix's elements.
         The variation is the standard deviation divided by the mean.
         @author D.K.
-	@SeeAlso <See Method=Mean>
-	@SeeAlso <See Method=Moment>
-	@SeeAlso <See Method=Variance>
-	@SeeAlso <See Method=Skewness>
-	@SeeAlso <See Method=Kurtosis>
+        @SeeAlso <See Method=Mean>
+        @SeeAlso <See Method=Moment>
+        @SeeAlso <See Method=Variance>
+        @SeeAlso <See Method=Skewness>
+        @SeeAlso <See Method=Kurtosis>
     }
     function Variation: Real;
     {** Calculates the skewness of the matrix's elements.
         @author D.K.
-	@SeeAlso <See Method=Mean>
-	@SeeAlso <See Method=Variance>
-	@SeeAlso <See Method=Moment>
-	@SeeAlso <See Method=Kurtosis>
-	@SeeAlso <See Method=Variation>
+        @SeeAlso <See Method=Mean>
+        @SeeAlso <See Method=Variance>
+        @SeeAlso <See Method=Moment>
+        @SeeAlso <See Method=Kurtosis>
+        @SeeAlso <See Method=Variation>
     }
     function Skewness: Real;
     {** Calculates the kurtosis of the matrix's elements.
         @author D.K.
-	@SeeAlso <See Method=Mean>
-	@SeeAlso <See Method=Variance>
-	@SeeAlso <See Method=Skewness>
-	@SeeAlso <See Method=Moment>
-	@SeeAlso <See Method=Variation>
+        @SeeAlso <See Method=Mean>
+        @SeeAlso <See Method=Variance>
+        @SeeAlso <See Method=Skewness>
+        @SeeAlso <See Method=Moment>
+        @SeeAlso <See Method=Variation>
     }
     function Kurtosis: Real;
     {** Calculates the determinant of a square matrix.
@@ -509,24 +496,24 @@ type
     property IsColumn: Boolean read FIsColumn;
     {** Changes the size of a vector.
         Call Resize to change the number of elements of a vector. If NewSize
-	is less than Size, the excess elements are cropped; if greater than
-	Size, the new extra elements are filled with zero.<p>
-	A vector can also be resized by setting the Size property.
-	@SeeAlso <See Property=Size>
+        is less than Size, the excess elements are cropped; if greater than
+        Size, the new extra elements are filled with zero.<p>
+        A vector can also be resized by setting the Size property.
+        @SeeAlso <See Property=Size>
     }
     procedure Resize(NewSize: Integer);
     {** Returns or sets the size of a vector.
         Use Size to determine the number of elements of the vector. Setting Size
-	is the same as using the Resize method.
-	@SeeAlso <See Method=Resize>
+        is the same as using the Resize method.
+        @SeeAlso <See Method=Resize>
     }
     property Size: Integer read GetSize write Resize;
     {** Returns or sets a vector element.
-	Read or set E to access element i of the vector. Element numbering
-	starts at 1. If i is greater than Size an exception is raised.<p>
-	E is the default property, so you don't normally need to write
-	AVector.E[i]; write AVector[i] instead.
-	@SeeAlso <See Property=Size>
+        Read or set E to access element i of the vector. Element numbering
+        starts at 1. If i is greater than Size an exception is raised.<p>
+        E is the default property, so you don't normally need to write
+        AVector.E[i]; write AVector[i] instead.
+        @SeeAlso <See Property=Size>
     }
     property E[i: Integer]: Real read GetElement write SetElement; default;
     {** Copies a TVector object.
@@ -536,78 +523,78 @@ type
           <li>If Source is not a TVector but is a TMatrix, it requires that one
               of RowCount and ColCount are 1, or an exception is raised.
         </ul>
-	@author A.X.
+        @author A.X.
         @SeeAlso <See Method=TMatrix.Assign>
         @SeeAlso <Jump File=Delphi5.hlp K="TPersistent,Assign" Text=Assign>
     }
     procedure Assign(Source: TPersistent); override;
     {** Creates a TVector object.
-	Call Create to create a new TVector object.  TVector objects created
-	with the version of Create without arguments should not be used before
-	resizing.<p>
-	When creating a TVector object, it is always created as a matrix with
-	one column and many rows; use Transpose after creation if the opposite
-	is required.
-	@SeeAlso <See Method=CreateFromArray>
-	@SeeAlso <See Method=Transpose>
+        Call Create to create a new TVector object.  TVector objects created
+        with the version of Create without arguments should not be used before
+        resizing.<p>
+        When creating a TVector object, it is always created as a matrix with
+        one column and many rows; use Transpose after creation if the opposite
+        is required.
+        @SeeAlso <See Method=CreateFromArray>
+        @SeeAlso <See Method=Transpose>
     }
     constructor Create; overload;
     {** (Overloaded method - no title required).
         Call Create to create a new TVector object.<p>
-	Create does not initialize the elements; to initialize them, use Fill or
-	Zero.<p>
-	When creating a TVector object, it is always created as a matrix with
-	one row and many columns; use Transpose after creation if the opposite
-	is required.
-	@SeeAlso <See Method=TMatrix.Fill>
-	@SeeAlso <See Method=TMatrix.Zero>
+        Create does not initialize the elements; to initialize them, use Fill or
+        Zero.<p>
+        When creating a TVector object, it is always created as a matrix with
+        one row and many columns; use Transpose after creation if the opposite
+        is required.
+        @SeeAlso <See Method=TMatrix.Fill>
+        @SeeAlso <See Method=TMatrix.Zero>
     }
     constructor Create(Size: Integer); overload;
     {** Creates a TVector object using an existing one-dimensional array.
         For more information on CreateFromArray, see TMatrix.CreateFromArray.
-	When creating a TVector object, it is always created as a matrix with
-	one column and many rows; use Transpose after creation if the opposite
-	is required.
-	@SeeAlso <See Method=TMatrix.CreateFromArray>
-	@SeeAlso <See Method=Transpose>
+        When creating a TVector object, it is always created as a matrix with
+        one column and many rows; use Transpose after creation if the opposite
+        is required.
+        @SeeAlso <See Method=TMatrix.CreateFromArray>
+        @SeeAlso <See Method=Transpose>
     }
     constructor CreateFromArray(Size: Integer; PArrayOfDouble: Pointer;
       Method: TCreateFromArrayMethod);
     {** Appends a vector to this vector.
         Call Append to append AVector to this vector, which is overwritten.
-	@author D.K.
+        @author D.K.
     }
     procedure Append(AVector: TVector);
     {** Copies a subvector of a vector.
         Use CopyFrom to copy the subvector of Source whose first element is
-	SourceStart, into this vector, starting at DestStart. If the copied
-	subset would reach outside the size of the vector, an exception is
-	raised.
-	@author D.K.
+        SourceStart, into this vector, starting at DestStart. If the copied
+        subset would reach outside the size of the vector, an exception is
+        raised.
+        @author D.K.
     }
     procedure CopyFrom(Source: TVector; SourceStart, ElementCount,
       DestStart: integer);
     {** Transposes the vector.
         Vectors are initially created as one column with many rows. Use
-	Transpose if this needs to be changed (for example, to multiply with a
-	TMatrix object).
-	@author D.K.
+        Transpose if this needs to be changed (for example, to multiply with a
+        TMatrix object).
+        @author D.K.
     }
     procedure Transpose; override;
     {** Sorts the vector.
         Use Sort to sort the vector elements in asceding order.
-	@author D.K.
+        @author D.K.
     }
     procedure Sort;
     {** Shifts a subvector within the vector.
-	Use Shift to shift the subvector specified by Start and End.  The
-	subvector is shifted rightward or downward by ElementCount; to shift to
-	the opposite direction, use a negative value for ElementCount. Elements
-	that are not overwritten by the shifting remain unchanged (including not
-	overwritten elements of the original subvector). If after shifting the
-	subvector would reach outside the vector boundaries, an exception is
-	raised. 
-	@author A.X.
+        Use Shift to shift the subvector specified by Start and End.  The
+        subvector is shifted rightward or downward by ElementCount; to shift to
+        the opposite direction, use a negative value for ElementCount. Elements
+        that are not overwritten by the shifting remain unchanged (including not
+        overwritten elements of the original subvector). If after shifting the
+        subvector would reach outside the vector boundaries, an exception is
+        raised.
+        @author A.X.
     }
     procedure Shift(StartElement, EndElement, ElementCount: Integer);
     function AutoCovariance(Order: Integer): Real;
@@ -630,55 +617,55 @@ type
   TIntVector = class(TPersistent)
   private
     FSize: Integer;
-    FElements: PMatrixIntArray;
+    FElements: TMatrixIntArray;
   protected
     function GetElement(i: Integer): Integer;
     procedure SetElement(i: Integer; Value: Integer);
   public
     {** Changes the size of a vector.
         Call Resize to change the number of elements of a vector. If NewSize
-	is less than Size, the excess elements are cropped; if greater than
-	Size, the new extra elements are filled with zero.<p>
-	A vector can also be resized by setting the Size property.
-	@SeeAlso <See Property=Size>
+        is less than Size, the excess elements are cropped; if greater than
+        Size, the new extra elements are filled with zero.<p>
+        A vector can also be resized by setting the Size property.
+        @SeeAlso <See Property=Size>
     }
     procedure Resize(NewSize: Integer);
     {** Returns or sets the size of a vector.
         Use Size to determine the number of elements of the vector. Setting Size
-	is the same as using the Resize method.
-	@SeeAlso <See Method=Resize>
+        is the same as using the Resize method.
+        @SeeAlso <See Method=Resize>
     }
     property Size: Integer read FSize write Resize;
-    {** Returns a pointer to the array of elements.
+    {** Returns the dynamic array used to store elements.
         Use PElements to access directly the internal array which stores the
-	elements.
+        elements.
     }
-    property PElements: PMatrixIntArray read FElements;
+    property PElements: TMatrixIntArray read FElements;
     {** Returns or sets a vector element.
-	Read or set E to access element i of the vector. Element numbering
-	starts at 1. If i is greater than Size an exception is raised.<p>
-	E is the default property, so you don't normally need to write
-	AIntVector.E[i]; write AIntVector[i] instead.
-	@SeeAlso <See Property=Size>
+        Read or set E to access element i of the vector. Element numbering
+        starts at 1. If i is greater than Size an exception is raised.<p>
+        E is the default property, so you don't normally need to write
+        AIntVector.E[i]; write AIntVector[i] instead.
+        @SeeAlso <See Property=Size>
     }
     property E[i: Integer]: Integer read GetElement write SetElement; default;
     {** Creates a TIntVector object.
-	Call Create to create a new TIntVector object.
-	TIntVector objects created with the version of Create
-	without arguments should not be used before resizing.<p>
-	@SeeAlso <See Property=Size>
-	@SeeAlso <See Method=Resize>
+        Call Create to create a new TIntVector object.
+        TIntVector objects created with the version of Create
+        without arguments should not be used before resizing.<p>
+        @SeeAlso <See Property=Size>
+        @SeeAlso <See Method=Resize>
     }
     constructor Create; overload;
     {** (Overloaded method - no title required).
-	Call Create to create a new TIntVector object. Create does not
-	initialize the elements; to initialize them, use Fill.<p>
-	@SeeAlso <See Method=Fill>
+        Call Create to create a new TIntVector object. Create does not
+        initialize the elements; to initialize them, use Fill.<p>
+        @SeeAlso <See Method=Fill>
     }
     constructor Create(Size: Integer); overload;
     {** Destroys the TIntVector object.
         Do not use Destroy; use Free instead, which checks if the object
-	reference is nil.
+        reference is nil.
         @SeeAlso <Jump File=Delphi5.hlp K="TObject,Free" Text=TObject.Free>
     }
     destructor Destroy; override;
@@ -709,11 +696,16 @@ begin
   FColCount := ColCount;
   FOwnsElements := True;
   FElements := nil;
-  GetMem(FElements, RowCount*ColCount*SizeOf(Real));
+  SetLength(FElements, RowCount*ColCount);
 end;
+
+type
+  TArrayOfReal = array[0..maMaxSize-1] of Real;
 
 constructor TMatrix.CreateFromArray(RowCount, ColCount: Integer;
   PArrayOfDouble: Pointer; Method: TCreateFromArrayMethod);
+var
+  i: Integer;
 begin
   inherited Create;
   FRowCount := RowCount;
@@ -721,25 +713,27 @@ begin
   FElements := nil;
   if Method = maDontOwnArray then
   begin
-    FElements := PArrayOfDouble;
-    FOwnsElements := False;
+    Assert(False, 'Not Yet Implemented');
+(*    FElements := PArrayOfDouble;
+    FOwnsElements := False;*)
   end else if Method = maOwnArray then
   begin
-    FElements := PArrayOfDouble;
-    FOwnsElements := True;
+    Assert(False, 'Not Yet Implemented');
+(*    FElements := PArrayOfDouble;
+    FOwnsElements := True;*)
   end else if Method = maCopyArray then
   begin
-    GetMem(FElements, RowCount*ColCount*SizeOf(Real));
-    Move(PArrayOfDouble^, FElements^, RowCount*ColCount*SizeOf(Real));
+    SetLength(FElements, RowCount*ColCount);
+    for i := 0 to RowCount*ColCount*SizeOf(Real)-1 do
+      FElements[i] := TArrayOfReal(PArrayOfDouble^)[i];
     FOwnsElements := True;
-  end else
-    Assert(False);
+  end;
 end;
 
 destructor TMatrix.Destroy;
 begin
   if OwnsElements and Assigned(FElements) then
-    FreeMem(FElements);
+    FElements := nil;
   inherited Destroy;
 end;
 
@@ -751,7 +745,7 @@ begin
   if (i<1) or (j<1) or (i>RowCount) or (j>ColCount) then
     raise EListError.Create(rsMatrixIndexOutOfBounds+' ('+IntToStr(i)+', '+
       IntToStr(j)+')');
-  Result := FElements^[(i-1)*ColCount + j-1];
+  Result := FElements[(i-1)*ColCount + j-1];
 end;
 
 
@@ -760,7 +754,7 @@ begin
   if (i<1) or (j<1) or (i>RowCount) or (j>ColCount) then
     raise EListError.Create(rsMatrixIndexOutOfBounds+' ('+IntToStr(i)+', '+
       IntToStr(j)+')');
-  FElements^[(i-1)*ColCount + j-1] := Value;
+  FElements[(i-1)*ColCount + j-1] := Value;
 end;
 
 function TMatrix.GetSize: Integer;
@@ -854,7 +848,7 @@ begin
     begin
       if not OwnsElements then
         raise Exception.Create(rsCannotResizeUnlessOwnsElements);
-      ReallocMem(FElements, NewRowCount*NewColCount*SizeOf(Real));
+      SetLength(FElements, NewRowCount*NewColCount);
     end;
     FColCount := NewColCount;
     FRowCount := NewRowCount;
@@ -867,6 +861,7 @@ end;
 procedure TMatrix.Assign(Source: TPersistent);
 var
   SourceMatrix: TMatrix;
+  i: Integer;
 begin
   if not (Source is TMatrix) then
   begin
@@ -874,16 +869,12 @@ begin
     Exit;
   end;
   SourceMatrix := TMatrix(Source);
-  if OwnsElements then
-    ReallocMem(FElements, SourceMatrix.Size*SizeOf(Real))
-  else
-  begin
-    GetMem(FElements, SourceMatrix.Size*SizeOf(Real));
-    FOwnsElements := True;
-  end;
+  SetLength(FElements, SourceMatrix.Size);
+  FOwnsElements := True;
   FRowCount := SourceMatrix.RowCount;
   FColCount := SourceMatrix.ColCount;
-  Move(SourceMatrix.FElements^, FElements^, Size*SizeOf(Real));
+  for i := 0 to Length(SourceMatrix.FElements)-1 do
+    FElements[i] := SourceMatrix.FElements[i];
 end;
 
 function TMatrix.Ascii: string;
@@ -906,7 +897,7 @@ begin;
   if Size<=0 then Exit;
   if (RowCount = 1) or (ColCount = 1) then
     Result := Result + Format('; Data: %g, ..., %g',
-      [FElements^[0], FElements^[Size-1]])
+      [FElements[0], FElements[Size-1]])
   else
     Result := Result + Format('; Row 1: %g, ..., %g; Row %d: %g, ..., %g',
       [E[1,1], E[1, ColCount], RowCount, E[RowCount,1], E[RowCount, ColCount]]);
@@ -1311,63 +1302,63 @@ end;
 
 function TMatrix.CountLarger(Threshold: Real): LongInt;
 begin
-  Result := stat2.CountLarge(Threshold, FElements^, Size);
+  Result := stat2.CountLarge(Threshold, FElements, Size);
 end;
 
 function TMatrix.Mean: Real;
 begin
-  Result := stat2.mean(FElements^, Size);
+  Result := stat2.mean(FElements, Size);
 end;
 
 function TMatrix.Variance: Real;
 begin
-  Result := stat2.variance(FElements^, Size);
+  Result := stat2.variance(FElements, Size);
 end;
 
 function TMatrix.Moment(Order: Integer): Real;
 begin
-  Result := stat2.CentralMoment(Order, FElements^, Size);
+  Result := stat2.CentralMoment(Order, FElements, Size);
 end;
 
 function TMatrix.Variation: Real;
 begin
-  Result := stat2.Variation(FElements^, Size);
+  Result := stat2.Variation(FElements, Size);
 end;
 
 function TMatrix.Skewness: Real;
 begin
-  Result := stat2.Skewness(FElements^, Size);
+  Result := stat2.Skewness(FElements, Size);
 end;
 
 function TMatrix.Kurtosis: Real;
 begin
-  Result := stat2.Kurtosis (FElements^, Size);
+  Result := stat2.Kurtosis (FElements, Size);
 end;
 
 function TMatrix.CrossMoment(Order1, Order2: Integer; AMatrix: TMatrix): Real;
 begin
   if Size<>AMatrix.Size then
     raise Exception.Create(rsInconsistentMatrixDimensions);
-  Result := stat2.CentralCrossMoment(Order1, Order2, FElements^,
-    AMatrix.FElements^, Size);
+  Result := stat2.CentralCrossMoment(Order1, Order2, FElements,
+    AMatrix.FElements, Size);
 end;
 
 function TMatrix.Covariance(AMatrix: TMatrix): Real;
 begin
   if Size<>AMatrix.Size then
     raise Exception.Create(rsInconsistentMatrixDimensions);
-  Result := stat2.covariance(FElements^, AMatrix.FElements^, Size);
+  Result := stat2.covariance(FElements, AMatrix.FElements, Size);
 end;
 
 function TMatrix.Correlation(AMatrix: TMatrix): Real;
 begin
-  result := stat2.correlation(FElements^, AMatrix.FElements^, Size);
+  Result := stat2.correlation(FElements, AMatrix.FElements, Size);
 end;
 
 procedure TMatrix.LMoments (Biased: Boolean;
           var Lamda1, Lamda2, Lamda3, Lamda4: Real);
 begin
-  stat2.LMoments(FElements^, Size, biased, lamda1, lamda2, lamda3, lamda4);
+  stat2.LMoments(FElements, Size, biased, lamda1, lamda2, lamda3, lamda4);
 end;
 
 constructor TVector.Create;
@@ -1415,14 +1406,14 @@ function TVector.GetElement(i: Integer): Real;
 begin
   if (i<1) or (i>Size) then
     raise EListError.Create(rsVectorIndexOutOfBounds+' ('+IntToStr(i)+')');
-  Result := FElements^[i-1];
+  Result := FElements[i-1];
 end;
 
 procedure TVector.SetElement(i: Integer; Value: Real);
 begin
   if (i<1) or (i>Size) then
     raise EListError.Create(rsVectorIndexOutOfBounds+' ('+IntToStr(i)+')');
-  FElements^[i-1] := Value;
+  FElements[i-1] := Value;
 end;
 
 procedure TVector.Resize(NewSize: Integer);
@@ -1465,27 +1456,27 @@ end;
 
 function TVector.AutoCovariance(Order: Integer): Real;
 begin
-  Result := stat2.autocovariance(Order, FElements^, Size);
+  Result := stat2.autocovariance(Order, FElements, Size);
 end;
 
 function TVector.AutoCorrelation(Order: Integer): Real;
 begin
-  Result := stat2.autocorrelation(Order, FElements^, size);
+  Result := stat2.autocorrelation(Order, FElements, size);
 end;
 
 procedure TVector.Sort;
 begin
-  stat2.QuickSortAsc(FElements^, Size);
+  stat2.QuickSortAsc(FElements, Size);
 end;
 
 function TVector.OrderOfMax: Integer;
 begin
-  result := stat2.OrderOfMax(FElements^, size);
+  Result := stat2.OrderOfMax(FElements, size);
 end;
 
 function TVector.OrderOfMin: Integer;
 begin
-  result := stat2.OrderOfMin(FElements^, size);
+  Result := stat2.OrderOfMin(FElements, size);
 end;
 
 resourcestring
@@ -1551,14 +1542,14 @@ end;
 constructor TIntVector.Create(Size: Integer);
 begin
   inherited Create;
-  GetMem(FElements, Size*SizeOf(integer));
+  SetLength(FElements, Size);
   FSize := Size;
 end;
 
 destructor TIntVector.Destroy;
 begin
   if Assigned(FElements) then
-    FreeMem(FElements, Size*SizeOf(Integer));
+    FElements := nil;
   inherited Destroy;
 end;
 
@@ -1566,20 +1557,20 @@ function TIntVector.GetElement(i: Integer): Integer;
 begin
   if (i<1) or (i>Size) then
     raise EListError.Create(rsVectorIndexOutOfBounds+' ('+IntToStr(i)+')');
-  Result := FElements^[i-1];
+  Result := FElements[i-1];
 end;
 
 procedure TIntVector.SetElement(i: Integer; Value: Integer);
 begin
   if (i<1) or (i>Size) then
     raise EListError.Create(rsVectorIndexOutOfBounds+' ('+IntToStr(i)+')');
-  FElements^[(i-1)] := Value;
+  FElements[(i-1)] := Value;
 end;
 
 procedure TIntVector.Resize(NewSize: Integer);
 var i, OldSize: Integer;
 begin
-  ReallocMem(FElements, NewSize*SizeOf(Integer));
+  SetLength(FElements, NewSize);
   OldSize := Size;
   FSize := NewSize;
   for i := OldSize+1 to Size do
