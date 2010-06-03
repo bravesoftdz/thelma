@@ -17,8 +17,8 @@ uses Classes, SysUtils, Math, Matrix;
 
 type
   TMathFunc = function(X: Real): Real;
-  TMathFuncMult = function(var X: TVector): Real;
-  TMathFuncMultDeriv = function(var X: TVector): TVector;
+  TMathFuncMult = function(X: TVector): Real;
+  TMathFuncMultDeriv = function(X: TVector): TVector;
 
   TArrayOfReal = array of Real;
   T2DArrayOfReal = array of array of Real;
@@ -636,13 +636,16 @@ function dFDim(x:Real):Real;
 var
   Xt,dX: TVector;
   j,n: Integer;
+  VectorFunctionDeriv_handler: TVector;
 begin
   Result:=0;
   n:=Pcom.Rowcount;
   Xt:=TVector.Create(n);
   dX:=TVector.Create(n);
   For j:=1 to n do Xt.e[j]:=Pcom.e[j] + x*Xicom.e[j];
-  dx.Assign(TVectorFunctionDeriv(Xt));
+  VectorFunctionDeriv_handler := TVectorFunctionDeriv(Xt);
+  dx.Assign(VectorFunctionDeriv_handler);
+  FreeAndNil(VectorFunctionDeriv_handler);
   For j:=1 to n do Result:=Result + dX.e[j]*Xicom.e[j];
   Xt.Free;
   dX.Free;
@@ -661,7 +664,7 @@ const
   EPS   = 1e-10; {small number to rectify the special case of converging
                   to exactly zero function value}
 var
-  g, h, xi: TVector;
+  g, h, xi, df_handler: TVector;
   gg, gam, fp, dgg: Real;
   j, its, dim: Integer;
 begin
@@ -671,7 +674,9 @@ begin
   xi:=TVector.Create(dim);
 
   fp:=f(p); {Initializations}
-  xi.Assign(df(p));
+  df_handler := df(p);
+  xi.Assign(df_handler);
+  FreeAndNil(df_handler);
 
   For j:=1 to dim do
   begin
@@ -687,7 +692,9 @@ begin
     If (2*ABS(fret-fp)<=ftol*(ABS(fret)+ABS(fp)+EPS)) then break;
 
     fp:=f(p);
-    xi.Assign(df(p));
+    df_handler := df(p);
+    xi.Assign(df_handler);
+    FreeAndNil(df_handler);
     gg:=0;
     dgg:=0;
     For j:=1 to dim do
