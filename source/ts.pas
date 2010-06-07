@@ -4544,13 +4544,21 @@ procedure TMultiTimeseries.WriteToStream(AStream: TStream;
 var
   AStreamWriter: TStreamWriter;
   ASavedTitle: string;
+  AEncoding: TEncoding;
   i: Integer;
 begin
   if FSectionList.Count<1 then Exit;
+  Assert(FileVersion in [1,2]);
+  AEncoding := nil; //to eliminate compiler warnings
+  case FileVersion of
+    1: AEncoding := TEncoding.Default;
+    2: AEncoding := TEncoding.UTF8;
+  else Assert(False);
+  end;
   AStreamWriter := nil;
   try
     ASavedTitle := Sections[1].Title;
-    AStreamWriter := TStreamWriter.Create(AStream, TEncoding.Default);
+    AStreamWriter := TStreamWriter.Create(AStream, AEncoding);
     Sections[1].Title := FName;
     Sections[1].WriteMeta(AStreamWriter, FileVersion);
     for i := 1 to FSectionList.Count do
