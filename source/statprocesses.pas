@@ -99,6 +99,8 @@ type
     record, after a data sorting}
     procedure CalcStats(Truncate: Boolean);
     function GetCount: Integer;
+    function GetCountZeros: Integer;
+    function GetCountNonZeros: Integer;
   protected
 {** Returns a TProbabilityRecord from the items array of index Index.
 }
@@ -133,6 +135,12 @@ type
 {** Returns the number of the items.
 }
     property Count: Integer read GetCount;
+{** Returns the number of zero (<1e-9) items
+}
+    property CountZeros: Integer read GetCountZeros;
+{** Returns the number of non zero (>1e-9) items as count-countzeros
+}
+    property CountNonZeros: Integer read GetCountNonZeros;
 {** Items array. Items property is default, you don't have to use Items
     property, write: DataList[i].
 }
@@ -619,6 +627,21 @@ end;
 function TDataList.GetCount: Integer;
 begin
   Result := FItemsList.Count;
+end;
+
+function TDataList.GetCountZeros: Integer;
+var
+  i: Integer;
+begin
+  Result := 0;
+  for i := 0 to FItemsList.Count-1 do
+    if Abs(Items[i].Value)<1e-9 then
+      Inc(Result);
+end;
+
+function TDataList.GetCountNonZeros: Integer;
+begin
+  Result := GetCount-GetCountZeros;
 end;
 
 procedure TDataList.Clear;
