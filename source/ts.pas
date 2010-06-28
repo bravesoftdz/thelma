@@ -827,7 +827,8 @@ type
       write SetTimeStepStrict;
     {** Returns True if can set time step strict to True.
     }
-    function CheckTimeStepStrict(var ErrMessage: string): Boolean;
+    function CheckTimeStepStrict(var ErrMessage: string;
+      var ANominalOffset: TDateOffset): Boolean;
     {** Not used yet. }
     property Variable: Integer read FVariable write FVariable;
     {** Specifies whether the variable is instantaneous, cumulative, average,
@@ -3649,7 +3650,8 @@ resourcestring
   rsMonthlyAndAnnualAreAlwaysStrict =
     'Time steps greater or equal than monthly are always considered strict.';
 
-function TTimeseries.CheckTimeStepStrict(var ErrMessage: string): Boolean;
+function TTimeseries.CheckTimeStepStrict(var ErrMessage: string;
+  var ANominalOffset: TDateOffset): Boolean;
 var
   i: Integer;
   FSavedNominalOffset: TDateOffset;
@@ -3659,6 +3661,7 @@ begin
   FSavedNominalOffset := FNominalOffset;
   try
     AdjustDateOffset(True);
+    ANominalOffset := FNominalOffset;
     for i := 0 to Count-1 do
       if not CheckIfDateFits(Items[i].Date, True) then
       begin
@@ -3675,11 +3678,12 @@ end;
 procedure TTimeseries.SetTimeStepStrict(Value: Boolean);
 var
   s: string;
+  Dummy: TDateOffset;
 begin
   if FTimeStepStrict=Value then Exit;
   if (not Value) and (TimeStep>=tstMonthly) then
     raise Exception.Create(rsMonthlyAndAnnualAreAlwaysStrict);
-  if (Value) and (not CheckTimeStepStrict(s)) then
+  if (Value) and (not CheckTimeStepStrict(s, Dummy)) then
     raise Exception.Create(s);
   FTimeStepStrict := Value;
   AdjustDateOffset;
