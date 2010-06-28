@@ -223,6 +223,7 @@ begin
         DoubleMassCurve[i-1].Dependent;
     end;
   finally
+    DateTimeList.Free;
     TimeseriesList.Free;
   end;
 end;
