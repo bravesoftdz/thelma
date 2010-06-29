@@ -113,8 +113,8 @@
 						<VersionInfo Name="AutoIncBuild">True</VersionInfo>
 						<VersionInfo Name="MajorVer">2</VersionInfo>
 						<VersionInfo Name="MinorVer">99</VersionInfo>
-						<VersionInfo Name="Release">16</VersionInfo>
-						<VersionInfo Name="Build">20</VersionInfo>
+						<VersionInfo Name="Release">17</VersionInfo>
+						<VersionInfo Name="Build">21</VersionInfo>
 						<VersionInfo Name="Debug">False</VersionInfo>
 						<VersionInfo Name="PreRelease">False</VersionInfo>
 						<VersionInfo Name="Special">False</VersionInfo>
@@ -126,7 +126,7 @@
 					<VersionInfoKeys>
 						<VersionInfoKeys Name="CompanyName">National Technical University of Athens</VersionInfoKeys>
 						<VersionInfoKeys Name="FileDescription">Thelma - Timeseries and Hydrology Extensible Library for Managing Aquasystems - Runtime Library</VersionInfoKeys>
-						<VersionInfoKeys Name="FileVersion">2.99.16.20</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">2.99.17.21</VersionInfoKeys>
 						<VersionInfoKeys Name="InternalName">thelma</VersionInfoKeys>
 						<VersionInfoKeys Name="LegalCopyright"/>
 						<VersionInfoKeys Name="LegalTrademarks"/>
