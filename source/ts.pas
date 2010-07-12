@@ -3330,6 +3330,7 @@ procedure TTimeseries.Aggregate(Dest, Missing: TTimeseries;
     AIndex: Integer;
     AUsedInterval, AUnusedInterval, AOut: TDateTime;
     ADivider, ATotalComponents, APctUsed: Real;
+    SourceHasMissing: Boolean;
 
     procedure AssessDestInterval;
     var
@@ -3379,6 +3380,7 @@ procedure TTimeseries.Aggregate(Dest, Missing: TTimeseries;
       Assert(False);
     ATotalComponents := 0;
     ADivider := 0;
+    SourceHasMissing := False;
     while DiffInSecs(ATime, AEndNominal)<=0 do
     begin
       SStartDate := IntervalStartPoint(ATime);
@@ -3408,6 +3410,8 @@ procedure TTimeseries.Aggregate(Dest, Missing: TTimeseries;
         Continue;
       end;
       ADivider := ADivider + APctUsed;
+      SourceHasMissing := SourceHasMissing or
+        Items[AIndex].GetFlag(Options.MissingFlag);
       if AIntervalType in [vtCumulative, vtAverage] then
         Result.Value := Result.Value + Items[AIndex].AsFloat*APctUsed
       else if AIntervalType = vtMaximum then
@@ -3443,7 +3447,7 @@ procedure TTimeseries.Aggregate(Dest, Missing: TTimeseries;
         (Abs(Result.CountMissing - ATotalComponents)<1e-36 ) then
       Result.IsNull := True
     else begin
-      if Result.CountMissing/ATotalComponents>1e-36 then
+      if SourceHasMissing or (Result.CountMissing/ATotalComponents>1e-36) then
         Result.Flag := Options.MissingFlag;
       if Dest.VariableType = vtAverage then
         Result.Value := Result.Value / ADivider

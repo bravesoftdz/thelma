@@ -1,8 +1,11 @@
-VERSION=2
+﻿Version=2
+Count=4
 Time_step=60,0
 Nominal_offset=0,0
+Actual_offset=0,0
+Precision=2
 
 2008-02-07 10:00,10.32,MISSING
 2008-02-07 11:00,10.54,
-2008-02-07 12:00,11.41,
+2008-02-07 12:00,11.41,MISSING
 2008-02-07 13:00,11.91,
