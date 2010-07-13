@@ -3013,6 +3013,15 @@ var
   Delimiter, FlagDelimiter: Char;
   DateFormat: string;
   ProgressIndicatorIsActive: Boolean;
+
+  function TsRecordToString(ATsRecord: TTsRecord): string;
+  begin
+    Result := '';
+    with ATsRecord do
+      if not IsNull then
+        Result := FloatToStr(AsFloat);
+  end;
+
 begin
   SavedDecimalSeparator := Sysutils.DecimalSeparator;
   ProgressIndicatorIsActive := @ProgressIndicator<>nil;
@@ -3027,7 +3036,7 @@ begin
         if (i div 1000)*1000 = i then
           ProgressIndicator(i, Count);
       AStreamWriter.WriteLine(FormatDateTime(DateFormat, Items[i].Date)+
-        Delimiter+Items[i].AsString+Delimiter+
+        Delimiter+TsRecordToString(Items[i])+Delimiter+
         Items[i].GetAllFlags(FlagDelimiter));
     end;
     if ProgressIndicatorIsActive then
