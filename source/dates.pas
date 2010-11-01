@@ -706,8 +706,8 @@ var
 	    Inc(PDateString)
 	  else
 	    RaiseNoMatch;
-	':', '.':
-	  if CharInSet(PDateString^ , [':', '.', TimeSeparator]) then
+	':':
+	  if (PDateString^ = ':') or (PDateString^ = TimeSeparator) then
 	    Inc(PDateString)
 	  else
 	    RaiseNoMatch;
