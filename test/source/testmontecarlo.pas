@@ -18,7 +18,7 @@ var TestsPassed: Integer;
 
 procedure TDummyClass.DummyProgress(var Stop: Boolean);
 begin
-  {}
+  Stop := False;
 end;
 
 function testlimits(Verbose: Boolean): string;
