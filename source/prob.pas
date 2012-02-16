@@ -134,6 +134,10 @@ function InvGaltoncdf (F, Miy, Sigmay, c: Real): Real;
 }
 procedure GaltonParam(Mean, StandardDeviation, AsymetryFactor: Real;
   var c, miy, sigmay: Real);
+{** Exponentialpdf returns the Probability Density Function for
+    the Exponential distribution.
+}
+function Exponentialpdf(X, Lambda, Psi: Real): Real;
 {** Exponentialcdf returns the cumulative distribution function
     for the Exponential distribution, that is the probability of
     not exceeding the value x of a random variable.
@@ -622,8 +626,8 @@ begin
     begin
       raise EInvalidArgument.Create(rsNegativeStdDevNormalpdf);
     end;
-  x := (x - Mi)/Sigma;
-  normalpdf := exp(-Sqr(x) / 2) / Sigma / Sqrt (2 * pi);
+    x := (x - Mi)/Sigma;
+    normalpdf := exp(-Sqr(x) / 2) / Sigma / Sqrt (2 * pi);
 end;
 
 { Συνάρτηση κανονικής κατανομής (Normal distribution function)}
@@ -787,6 +791,13 @@ resourcestring
     'Invalid inverted Gamma distribution argument';
   rsInvalidGammaRandomVariable =
     'Invalid Gamma random variable';
+
+function Exponentialpdf(X, Lambda, Psi: Real): Real;
+begin
+  if X<Psi then
+    raise EInvalidArgument.Create(rsInvalidExponentialCDFArgument);
+  Result := Lambda*Exp(-Lambda*(X-Psi));
+end;
 
 function Exponentialcdf(X, Lambda, Psi: Real): Real;
 begin

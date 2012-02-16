@@ -22,7 +22,7 @@
 		<PropertyGroup Condition="'$(Base)'!=''">
 			<DCC_OutputDRCFile>true</DCC_OutputDRCFile>
 			<DCC_Description>Thelma - Timeseries and Hydrology Extensible Library for Managing Aquasystems</DCC_Description>
-			<DCC_DependencyCheckOutputName>..\..\..\..\..\All Users\Documents\RAD Studio\6.0\Bpl\thelma3.bpl</DCC_DependencyCheckOutputName>
+			<DCC_DependencyCheckOutputName>C:\Documents and Settings\All Users\Documents\RAD Studio\6.0\Bpl\thelma3.bpl</DCC_DependencyCheckOutputName>
 			<DesignOnlyPackage>false</DesignOnlyPackage>
 			<DCC_UnitAlias>WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;$(DCC_UnitAlias)</DCC_UnitAlias>
 			<RuntimeOnlyPackage>true</RuntimeOnlyPackage>

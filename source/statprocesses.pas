@@ -12,7 +12,7 @@ unit statprocesses;
 interface
 
 uses
-  classes, ts, contnrs, sysutils;
+  classes, ts, contnrs, sysutils, optim_routines, Clipbrd;
 
 type
   TProbabilityPaperType = (pdptLinear, pdptNormal, pdptGumbelMax,
@@ -289,7 +289,10 @@ type
     FLogMeanValue, FLogStandardDeviation, FLogSkewness: Real;
     FGEVShape: Real;
     FAproxParameters: Boolean;
+    foptMaxEval: Real;
     function GetParamsCount: Integer;
+    function GetMinXAtP(p1, p2, p3: Real): Real;
+    function GetMaxXAtP(p1, p2, p3: Real): Real;
     function GetMinX: Real;
     function GetMaxX: Real;
     function GetName: string;
@@ -304,6 +307,8 @@ type
     function GetStatParam3: Real;
     function GetStatParam4: Real;
     function GetNumberOfClasses: Integer;
+    function MLEObjFunc(X: TArrayOfReal): Real;
+    function pdfValueAtP(p1, p2, p3: Real; AXValue: Real): Real;
   public
 {** The standard constructor. Set the distribution type and load sample
     values from ADataList. GEVShape is used by GEVMax and GEVMin
@@ -402,11 +407,17 @@ type
 {** Returns DataList as assigned from Create method.
 }
     property DataList: TDataList read FDataList;
+{** Returns the probability density function Value f(x) for a specific value x
+    of the random variable = AXValue.
+    @SeeAlso <See Method=InvcdfValue>
+}
+    function pdfValue(AXValue: Real): Real;
 {** Returns the probability function Value F(x) for a specific value x of the
     random variable = AXValue.
     @SeeAlso <See Method=InvcdfValue>
 }
-    function cdfValue(AXValue: Real): Real;
+    function cdfValue(AXValue: Real): Real; overload;
+    function cdfValue(p1, p2, p3, AXValue: Real): Real; overload;
 {** Returns the inverted probability function, namely the value of the
     value x for a specific probability function F = AFValue.
     @SeeAlso <See Method=cdfValue>
@@ -470,6 +481,12 @@ type
 }
     function KolmogorovSmirnovTest(ALevel: Real; var LevelToFail, Dmax: Real):
       Boolean;
+{** Distribution parameters estimation with the maximum likelihood estimation
+    method (MLE).
+}
+    procedure CalculateMaxLikelihoodParams(
+      min1, min2, min3, max1, max2, max3:Real;
+      var param1, param2, param3: Real);
   end;
 
 {** TStatisticalDistributionList is a class holding an object list
@@ -1198,7 +1215,7 @@ begin
     Result := 3;
 end;
 
-function TStatisticalDistribution.GetMinX;
+function TStatisticalDistribution.GetMinXAtP(p1, p2, p3: Real): Real;
 const
   inf=1e34;
 begin
@@ -1206,20 +1223,20 @@ begin
   case FDistributionType of
     sdtNormal: Result := -inf;
     sdtLogNormal: Result := 0;
-    sdtGalton: Result := FParam1;
-    sdtExponential, sdtLExponential: Result := FParam1;
+    sdtGalton: Result := p1;
+    sdtExponential, sdtLExponential: Result := p1;
     sdtGamma: Result := 0;
-    sdtPearsonIII: Result := FParam3;
-    sdtLogPearsonIII: Result := Exp(FParam3);
+    sdtPearsonIII: Result := p3;
+    sdtLogPearsonIII: Result := Exp(p3);
     sdtEV1Max, sdtEV1Min, sdtLEV1Max, sdtLEV1Min: Result := -inf;
     sdtEV2Max, sdtLEV2Max: Result := 0;
     sdtEV3Min, sdtLEV3Min: Result := 0;
-    sdtPareto, sdtLPareto: Result := FParam2*FParam3;
+    sdtPareto, sdtLPareto: Result := p2*p3;
     sdtGEVMax, sdtLGEVMax, sdtGEVMin, sdtLGEVMin,
     sdtGEVMaxK, sdtLGEVMaxK, sdtGEVMinK, sdtLGEVMinK:
       begin
-        if FParam1>0 then
-          Result := FParam2*(FParam3-1/FParam1)
+        if p1>0 then
+          Result := p2*(p3-1/p1)
         else
           Result := -inf;
       end;
@@ -1228,7 +1245,12 @@ begin
   end;
 end;
 
-function TStatisticalDistribution.GetMaxX;
+function TStatisticalDistribution.GetMinX: Real;
+begin
+  Result := GetMinXAtP(FParam1, FParam2, FParam3);
+end;
+
+function TStatisticalDistribution.GetMaxXAtP(p1, p2, p3: Real): Real;
 const
   inf=1e34;
 begin
@@ -1246,22 +1268,27 @@ begin
     sdtEV3Min, sdtLEV3Min: Result := inf;
     sdtPareto, sdtLPareto:
       begin
-        if FParam1>0 then
-          Result := FParam2*FParam3+FParam2/FParam1
+        if p1>0 then
+          Result := p2*p3+p2/p1
         else
           Result := inf;
       end;
     sdtGEVMax, sdtLGEVMax, sdtGEVMin, sdtLGEVMin,
     sdtGEVMaxK, sdtLGEVMaxK, sdtGEVMinK, sdtLGEVMinK:
       begin
-        if FParam1<0 then
-          Result := FParam2*(FParam3-1/FParam1)
+        if p1<0 then
+          Result := p2*(p3-1/p1)
         else
           Result := inf;
       end;
     else
       Assert(False);
   end;
+end;
+
+function TStatisticalDistribution.GetMaxX: Real;
+begin
+  Result := GetMaxXAtP(FParam1, FParam2, FParam3);
 end;
 
 function TStatisticalDistribution.GetStatParam1: Real;
@@ -1594,30 +1621,55 @@ begin
     CalcAproxParams;
 end;
 
-function TStatisticalDistribution.cdfValue(AXValue: Real): Real;
+function TStatisticalDistribution.pdfValueAtP(p1, p2, p3: Real;
+         AXValue: Real): Real;
 begin
   Result := 0;
   case FDistributionType of
-    sdtNormal, sdtLNormal: Result := Normalcdf(AXValue, FParam1, FParam2);
-    sdtLogNormal: Result := LogNormalcdf(AXValue, FParam1, FParam2);
-    sdtGalton: Result := Galtoncdf(AXValue, FParam2, FParam3, FParam1);
+    sdtNormal: Result := Normalpdf(AXValue, p1, p2);
+    sdtLogNormal: Result := Normalpdf(Ln(AXValue), p1, p2);
+    sdtExponential: Result := Exponentialpdf(AXValue, p2, p1);
+    sdtGamma: Result := Gammapdf(AXValue, p1, p2);
+    sdtPearsonIII: Result := Gammapdf(AXValue-p3, p1, p2);
+  else
+    Assert(False);
+  end;
+end;
+
+function TStatisticalDistribution.pdfValue(AXValue: Real): Real;
+begin
+  Result := pdfValueAtP(FParam1, FParam2, FParam3, AXValue);
+end;
+
+function TStatisticalDistribution.cdfValue(AXValue: Real): Real;
+begin
+  Result := cdfValue(FParam1, FParam2, FParam3, AXValue);
+end;
+
+function TStatisticalDistribution.cdfValue(p1, p2, p3, AXValue: Real): Real;
+begin
+  Result := 0;
+  case FDistributionType of
+    sdtNormal, sdtLNormal: Result := Normalcdf(AXValue, p1, p2);
+    sdtLogNormal: Result := LogNormalcdf(AXValue, p1, p2);
+    sdtGalton: Result := Galtoncdf(AXValue, p2, p3, p1);
     sdtExponential,sdtLExponential: Result :=
-      Exponentialcdf(AXValue, FParam2, FParam1);
-    sdtGamma: Result := Gammacdf(AXValue, FParam1, FParam2);
-    sdtPearsonIII: Result := PearsonIIIcdf(AXValue, FParam1, FParam2, FParam3);
-    sdtLogPearsonIII: Result := LogPearsonIIIcdf(AXValue, FParam1, FParam2,
-      FParam3);
+      Exponentialcdf(AXValue, p2, p1);
+    sdtGamma: Result := Gammacdf(AXValue, p1, p2);
+    sdtPearsonIII: Result := PearsonIIIcdf(AXValue, p1, p2, p3);
+    sdtLogPearsonIII: Result := LogPearsonIIIcdf(AXValue, p1, p2,
+      p3);
     sdtEV1Max, sdtLEV1Max: Result :=
-      EV1Maxcdf(AXValue, FParam1, FParam2);
-    sdtEV2Max, sdtLEV2Max: Result := EV2Maxcdf(AXValue, FParam1, FParam2);
-    sdtEV1Min, sdtLEV1Min: Result := EV1Mincdf(AXValue, FParam1, FParam2);
-    sdtEV3Min, sdtLEV3Min: Result := Weibcdf(AXValue, FParam1, FParam2);
+      EV1Maxcdf(AXValue, p1, p2);
+    sdtEV2Max, sdtLEV2Max: Result := EV2Maxcdf(AXValue, p1, p2);
+    sdtEV1Min, sdtLEV1Min: Result := EV1Mincdf(AXValue, p1, p2);
+    sdtEV3Min, sdtLEV3Min: Result := Weibcdf(AXValue, p1, p2);
     sdtGEVMax, sdtLGEVMax, sdtGEVMaxK, sdtLGEVMaxK: Result :=
-      GEVMaxcdf(AXValue, FParam1, FParam2, FParam3);
+      GEVMaxcdf(AXValue, p1, p2, p3);
     sdtGEVMin, sdtLGEVMin, sdtGEVMinK, sdtLGEVMinK: Result :=
-      GEVMincdf(AXValue, FParam1, FParam2, FParam3);
+      GEVMincdf(AXValue, p1, p2, p3);
     sdtPareto, sdtLPareto: Result :=
-      Paretocdf(AXValue, FParam1, FParam2, FParam3);
+      Paretocdf(AXValue, p1, p2, p3);
     else
       Assert(False);
   end;
@@ -1784,6 +1836,115 @@ begin
   if LevelToFail < ALevel then
     Result := False;
 end;
+
+var AStatisticalDistribution: TStatisticalDistribution;
+
+function ObjectiveFunction(var X: TArrayOfReal): Real;
+begin
+  Result := AStatisticalDistribution.MLEObjFunc(X);
+end;
+
+var
+  XMin, XMax, XOpt: TArrayOfReal;
+  fopt: Real;
+  eval, eval2: Integer;
+  optext: string;
+
+procedure TStatisticalDistribution.CalculateMaxLikelihoodParams(min1, min2,
+      min3, max1, max2, max3:Real;
+      var param1, param2, param3: Real);
+var
+//  XMin, XMax, XOpt: TArrayOfReal;
+//  fopt: Real;
+//  eval: Integer;
+  Dummy: Boolean;
+begin
+  AStatisticalDistribution := Self;
+  try
+      SetLength(XMin, 3);
+      SetLength(XMax, 3);
+      SetLength(XOpt, 3);
+      XOpt[0] := param1;
+      XOpt[1] := param2;
+      XOpt[2] := param3;
+      XMin[0] := min1;
+      XMin[1] := min2;
+      XMin[2] := min3;
+      XMax[0] := max1;
+      XMax[1] := max2;
+      XMax[2] := max3;
+      optext := '';
+      eval2 := 0;
+      foptMaxEval := MLEObjFunc(XOpt);
+      AnnealSimplex(2{ParameterCount}, 2{ParameterCount}*4, XMin, XMax, Xopt,
+        ObjectiveFunction, fopt, eval, 0.005, 1000*ParameterCount, 0.99, 0.10,
+        2, 5, True, False, Dummy);
+      param1 := XOpt[0];
+      param2 := XOpt[1];
+      param3 := XOpt[2];
+      Clipboard.AsText := optext;
+
+  finally
+    {Dereference}
+    AStatisticalDistribution := nil;
+  end;
+end;
+
+function TStatisticalDistribution.MLEObjFunc(X: TArrayOfReal): Real;
+var
+  i, valid_count: Integer;
+  apdf, ax: Real;
+begin
+  Result := 0;
+  valid_count := 0;
+  for i := 0 to FDataList.Count-1 do
+  begin
+    ax := FDataList[i].Value;
+    if ax>=GetMaxXAtP(X[0], X[1], X[2]) then
+    begin
+      Continue;
+    end
+    else if ax<=GetMinXAtP(X[0], X[1], X[2]) then
+    begin
+      Continue;
+    end;
+    try
+      apdf := pdfValueAtP(X[0], X[1], X[2], ax);
+      Inc(valid_count);
+    except
+      on EMathError do
+      begin
+        Result := foptMaxEval*1.01;
+        Break;
+      end;
+    else
+      raise;
+    end;
+    if (apdf>0) and (apdf<1) then
+    begin
+      Result := Result - Ln( apdf );
+    end else begin
+      Result := foptMaxEval*1.01;
+      Break;
+    end;
+  end;
+  if valid_count>0 then
+    Result := Result * FDataList.Count / valid_count
+  else
+    Result := foptMaxEval*1.01;
+  if foptMaxEval<Result then
+    foptMaxEval := Result;
+  if True {eval > eval2} then
+  begin
+    optext := optext+
+        IntToStr(eval)+#9+FloatToStr(X[0])+#9+
+        FloatToStr(X[1])+#9+FloatToStr(X[2])+#9+
+        FloatToStr(Result)+#13#10;
+    eval2 := eval;
+  end;
+end;
+
+{ TStatisticalDistributionsList }
 
 constructor TStatisticalDistributionsList.Create;
 begin
