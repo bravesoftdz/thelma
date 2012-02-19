@@ -281,6 +281,9 @@ function BetaVariance (Mi, Ni : Real) : Real;
     @SeeAlso <See Routine=EV1MaxLParam>
 }
 function EV1Maxcdf(X, Lambda, Psi: Real): Real;
+{** EV1 - max (Gambel Max), PDF
+}
+function EV1Maxpdf (X, Lambda, Psi: Real): Real;
 {** InvEV1Maxcdf returns the inverted cumulative distribution function for
     the EV1MAX (Gumbel Max) distribution.
     @SeeAlso <See Routine=EV1Maxcdf>
@@ -310,6 +313,9 @@ procedure EV1MaxLParam(L1, L2, L3: Real; var Lambda, Psi: Real);
     @SeeAlso <See Routine=GEVMincdf>
 }
 function EV1Mincdf(X, Lambda, Psi: Real): Real;
+{** EV1 Min PDF.
+}
+function EV1Minpdf(X, Lambda, Psi: Real): Real;
 {** InvEV1Mincdf returns the cumulative distribution function for the
     EV1Min (Gumbel Min) distribution.
     @SeeAlso <See Routine=EV1Mincdf>
@@ -337,6 +343,9 @@ procedure EV1MinLParam(L1, L2, L3: Real; var Lambda, Psi: Real);
     @SeeAlso <See Routine=EV2MaxLParam>
 }
 function EV2Maxcdf(X, Kappa, Lambda: Real): Real;
+{** EV2Max PDF
+}
+function EV2Maxpdf(X, Kappa, Lambda: Real): Real;
 {** InvEV2MAXcdf returns the inverted cumulative distribution function
     for the thow parameters EV2Max distribution.
     @SeeAlso <See Routine=EV2Maxcdf>
@@ -475,6 +484,9 @@ procedure GEVMaxLParamKS (L1, L2, L3, Shape: Real;
     @SeeAlso <See Routine=GEVMaxLParam>
 }
 function GEVMaxcdf (X, Kappa, Lambda, Psi: Real): Real;
+{** GEV Max pdf
+}
+function GEVMaxpdf (X, Kappa, Lambda, Psi: Real): Real;
 {** InvGEVMaxcdf returns the inverted cumulative distribution function for the
     GEVMax distribution.
     @SeeAlso <See Routine=GEVMaxcdf>
@@ -534,6 +546,9 @@ procedure GEVMinLParamKS (L1, L2, L3, Shape: Real;
     @SeeAlso <See Routine=GEVMinLParam>
 }
 function GEVMincdf (X, Kappa, Lambda, Psi: Real): Real;
+{** GEV Min pdf.
+}
+function GEVMinpdf (X, Kappa, Lambda, Psi: Real): Real;
 {** InvGEVMincdf returns the inverted cumulative distribution function for the
     GEVMin distribution.
     @SeeAlso <See Routine=GEVMincdf>
@@ -547,6 +562,9 @@ function InvGEVMincdf (F, Kappa, Lambda, Psi: Real): Real;
     @SeeAlso <See Routine=ParetoLParam>
 }
 function Paretocdf (X, Kappa, Lambda, Psi: Real): Real;
+{** Pareto PDF.
+}
+function Paretopdf (X, Kappa, Lambda, Psi: Real): Real;
 {** InvParetocdf returns the inverted cumulative distribution function
     for the pareto distribution.
     @SeeAlso <See Routine=Paretocdf>
@@ -1070,6 +1088,14 @@ begin
   Result := Exp( -Exp( -X/Lambda + Psi ) );
 end;
 
+function EV1Maxpdf (X, Lambda, Psi: Real): Real;
+var
+  F: Real;
+begin
+  F := EV1Maxcdf(X, Lambda, Psi);
+  Result := F*(-Ln(F))/Lambda;
+end;
+
 function InvEV1Maxcdf(F, Lambda, Psi: Real): Real;
 begin
   if (Lambda<=0) or (F>=1) or (F<=0) then
@@ -1096,6 +1122,14 @@ begin
   Result := 1 - Exp( -Exp( X/Lambda - Psi ) );
 end;
 
+function EV1Minpdf (X, Lambda, Psi: Real): Real;
+var
+  One_minus_F: Real;
+begin
+  One_minus_F := 1-EV1Mincdf(X, Lambda, Psi);
+  Result := One_minus_F*(-Ln(One_minus_F))/Lambda;
+end;
+
 function InvEV1Mincdf(F, Lambda, Psi: Real): Real;
 begin
   if (Lambda<=0) or (F>=1) or (F<=0) then
@@ -1120,6 +1154,14 @@ begin
   if (Lambda<=0) or (Kappa<=0) then
     raise EInvalidArgument.Create(rsInvalidEV2Maxparameters);
   Result := Exp( -1 * Power(Kappa*X/Lambda, -1/Kappa) );
+end;
+
+function EV2Maxpdf(X, Kappa, Lambda: Real): Real;
+var
+  F: Real;
+begin
+  F := EV2Maxcdf(X, Kappa, Lambda);
+  Result := F*Power(-Ln(F), 1+Kappa)/Lambda;
 end;
 
 function InvEV2Maxcdf(F, Kappa, Lambda: Real): Real;
@@ -1182,7 +1224,7 @@ function Weibpdf (x, Kappa, Lambda : Real) : Real;
     raise EInvalidArgument.Create(rsInvalidWeibPDFArguments);
     end;
   t1 := Power (x*Kappa/Lambda, 1/Kappa);
-  t2 := Power (x*Kappa/Lambda, 1/(Kappa-1) );
+  t2 := Power (x*Kappa/Lambda, 1/Kappa-1 );
   Weibpdf := (1/Lambda) * t2 * exp(-t1);
   end;
 
@@ -1401,6 +1443,14 @@ begin
     Result := Exp( -1*Exp(-1*X/Lambda+Psi));
 end;
 
+function GEVMaxpdf(X, Kappa, Lambda, Psi: Real): Real;
+var
+  F: Real;
+begin
+  F := GEVMaxcdf(X, Kappa, Lambda, Psi);
+  Result := F*Power(-Ln(F), 1+Kappa)/Lambda;
+end;
+
 function InvGEVMaxcdf(F, Kappa, Lambda, Psi: Real): Real;
 begin
   if (Lambda <= 0) or (F<=0) or (F>=1) then
@@ -1525,6 +1575,14 @@ begin
     Result := 1-Exp(-1*Exp(X/Lambda-Psi));
 end;
 
+function GEVMinpdf(X, Kappa, Lambda, Psi: Real): Real;
+var
+  One_minus_F: Real;
+begin
+  One_minus_F := 1 - GEVMincdf(X, Kappa, Lambda, Psi);
+  Result := One_minus_F*Power(-Ln(One_minus_F), 1-Kappa)/Lambda;
+end;
+
 function InvGEVMincdf (F, Kappa, Lambda, Psi: Real): Real;
 begin
   if (Lambda <= 0) or (F<=0) or (F>=1) then
@@ -1550,6 +1608,16 @@ begin
     Result := 1-Power(1-Kappa*(X/Lambda-Psi),1/Kappa)
   else
     Result := 1-Exp(Psi-X/Lambda);
+end;
+
+function Paretopdf(X, Kappa, Lambda, Psi: Real): Real;
+begin
+  if Lambda<=0 then
+    raise EInvalidArgument.Create(rsInvalidParetoParameters);
+  if Abs(Kappa)>=0.001 then
+    Result := Power(1-Kappa*(X/Lambda-Psi),1/Kappa-1)/Lambda
+  else
+    Result := Exp(Psi-X/Lambda)/Lambda;
 end;
 
 function InvParetocdf (F, Kappa, Lambda, Psi: Real): Real;

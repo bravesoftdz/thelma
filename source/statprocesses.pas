@@ -1631,6 +1631,14 @@ begin
     sdtExponential: Result := Exponentialpdf(AXValue, p2, p1);
     sdtGamma: Result := Gammapdf(AXValue, p1, p2);
     sdtPearsonIII: Result := Gammapdf(AXValue-p3, p1, p2);
+    sdtLogPearsonIII: Result := Gammapdf(Ln(AXValue)-p3, p1, p2)/AXValue;
+    sdtPareto: Result := Paretopdf(AXValue, p1, p2, p3);
+    sdtEV1Max: Result := EV1Maxpdf(AXValue, p1, p2);
+    sdtEV2Max: Result := EV2Maxpdf(AXValue, p1, p2);
+    sdtEV1Min: Result := EV1Minpdf(AXValue, p1, p2);
+    sdtEV3Min: Result := Weibpdf(AXValue, p1, p2);
+    sdtGEVMax: Result := GEVMaxpdf(AXValue, p1, p2, p3);
+    sdtGEVMin: Result := GEVMinpdf(AXValue, p1, p2, p3);
   else
     Assert(False);
   end;
@@ -1876,7 +1884,7 @@ begin
       optext := '';
       eval2 := 0;
       foptMaxEval := MLEObjFunc(XOpt);
-      AnnealSimplex(2{ParameterCount}, 2{ParameterCount}*4, XMin, XMax, Xopt,
+      AnnealSimplex(ParameterCount, ParameterCount*4, XMin, XMax, Xopt,
         ObjectiveFunction, fopt, eval, 0.005, 1000*ParameterCount, 0.99, 0.10,
         2, 5, True, False, Dummy);
       param1 := XOpt[0];

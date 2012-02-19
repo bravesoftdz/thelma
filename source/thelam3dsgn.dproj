@@ -23,7 +23,7 @@
 			<DCC_OutputDRCFile>true</DCC_OutputDRCFile>
 			<DCC_Description>Thelma - Timeseries and Hydrology Extensible Library for Managing Aquasystems</DCC_Description>
 			<DesignOnlyPackage>true</DesignOnlyPackage>
-			<DCC_DependencyCheckOutputName>..\..\..\..\..\All Users\Documents\RAD Studio\6.0\Bpl\thelam3dsgn.bpl</DCC_DependencyCheckOutputName>
+			<DCC_DependencyCheckOutputName>C:\Documents and Settings\All Users\Documents\RAD Studio\6.0\Bpl\thelam3dsgn.bpl</DCC_DependencyCheckOutputName>
 			<DCC_UnitAlias>WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;$(DCC_UnitAlias)</DCC_UnitAlias>
 			<DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
 			<DCC_DcuOutput>..\lib</DCC_DcuOutput>
