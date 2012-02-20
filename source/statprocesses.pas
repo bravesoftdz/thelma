@@ -291,8 +291,6 @@ type
     FAproxParameters: Boolean;
     foptMaxEval: Real;
     function GetParamsCount: Integer;
-    function GetMinXAtP(p1, p2, p3: Real): Real;
-    function GetMaxXAtP(p1, p2, p3: Real): Real;
     function GetMinX: Real;
     function GetMaxX: Real;
     function GetName: string;
@@ -310,6 +308,8 @@ type
     function MLEObjFunc(X: TArrayOfReal): Real;
     function pdfValueAtP(p1, p2, p3: Real; AXValue: Real): Real;
   public
+    function GetMinXAtP(p1, p2, p3: Real): Real;
+    function GetMaxXAtP(p1, p2, p3: Real): Real;
 {** The standard constructor. Set the distribution type and load sample
     values from ADataList. GEVShape is used by GEVMax and GEVMin
     distributions if the k parameter is specified.
@@ -1627,7 +1627,8 @@ begin
   Result := 0;
   case FDistributionType of
     sdtNormal: Result := Normalpdf(AXValue, p1, p2);
-    sdtLogNormal: Result := Normalpdf(Ln(AXValue), p1, p2);
+    sdtLogNormal: Result := Normalpdf(Ln(AXValue), p1, p2)/AXValue;
+    sdtGalton: Result := Normalpdf(Ln(AXValue-p3), p1, p2)/(AXValue-p3);
     sdtExponential: Result := Exponentialpdf(AXValue, p2, p1);
     sdtGamma: Result := Gammapdf(AXValue, p1, p2);
     sdtPearsonIII: Result := Gammapdf(AXValue-p3, p1, p2);
