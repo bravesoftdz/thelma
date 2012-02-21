@@ -12,7 +12,7 @@ unit statprocesses;
 interface
 
 uses
-  classes, ts, contnrs, sysutils, optim_routines, Clipbrd;
+  classes, ts, contnrs, sysutils, optim_routines;
 
 type
   TProbabilityPaperType = (pdptLinear, pdptNormal, pdptGumbelMax,
@@ -1846,26 +1846,21 @@ begin
     Result := False;
 end;
 
-var AStatisticalDistribution: TStatisticalDistribution;
+var
+  AStatisticalDistribution: TStatisticalDistribution;
+  XMin, XMax, XOpt: TArrayOfReal;
+  fopt: Real;
+  eval: Integer;
 
 function ObjectiveFunction(var X: TArrayOfReal): Real;
 begin
   Result := AStatisticalDistribution.MLEObjFunc(X);
 end;
 
-var
-  XMin, XMax, XOpt: TArrayOfReal;
-  fopt: Real;
-  eval, eval2: Integer;
-  optext: string;
-
 procedure TStatisticalDistribution.CalculateMaxLikelihoodParams(min1, min2,
       min3, max1, max2, max3:Real;
       var param1, param2, param3: Real);
 var
-//  XMin, XMax, XOpt: TArrayOfReal;
-//  fopt: Real;
-//  eval: Integer;
   Dummy: Boolean;
 begin
   AStatisticalDistribution := Self;
@@ -1882,8 +1877,6 @@ begin
       XMax[0] := max1;
       XMax[1] := max2;
       XMax[2] := max3;
-      optext := '';
-      eval2 := 0;
       foptMaxEval := MLEObjFunc(XOpt);
       AnnealSimplex(ParameterCount, ParameterCount*4, XMin, XMax, Xopt,
         ObjectiveFunction, fopt, eval, 0.005, 1000*ParameterCount, 0.99, 0.10,
@@ -1891,8 +1884,6 @@ begin
       param1 := XOpt[0];
       param2 := XOpt[1];
       param3 := XOpt[2];
-      Clipboard.AsText := optext;
-
   finally
     {Dereference}
     AStatisticalDistribution := nil;
@@ -1923,7 +1914,7 @@ begin
     except
       on EMathError do
       begin
-        Result := foptMaxEval*1.01;
+        Result := foptMaxEval*1.001;
         Break;
       end;
     else
@@ -1933,24 +1924,16 @@ begin
     begin
       Result := Result - Ln( apdf );
     end else begin
-      Result := foptMaxEval*1.01;
+      Result := foptMaxEval*1.001;
       Break;
     end;
   end;
   if valid_count>0 then
     Result := Result * FDataList.Count / valid_count
   else
-    Result := foptMaxEval*1.01;
+    Result := foptMaxEval*1.001;
   if foptMaxEval<Result then
     foptMaxEval := Result;
-  if True {eval > eval2} then
-  begin
-    optext := optext+
-        IntToStr(eval)+#9+FloatToStr(X[0])+#9+
-        FloatToStr(X[1])+#9+FloatToStr(X[2])+#9+
-        FloatToStr(Result)+#13#10;
-    eval2 := eval;
-  end;
 end;
 
 { TStatisticalDistributionsList }
