@@ -422,7 +422,8 @@ type
     value x for a specific probability function F = AFValue.
     @SeeAlso <See Method=cdfValue>
 }
-    function InvcdfValue(AFValue: Real): Real;
+    function InvcdfValue(AFValue: Real): Real; overload;
+    function InvcdfValue(p1, p2, p3, AFValue: Real): Real; overload;
 {** Returns a random value following the statistical distribution.
 }
     function Rand: Real;
@@ -1626,20 +1627,22 @@ function TStatisticalDistribution.pdfValueAtP(p1, p2, p3: Real;
 begin
   Result := 0;
   case FDistributionType of
-    sdtNormal: Result := Normalpdf(AXValue, p1, p2);
-    sdtLogNormal: Result := Normalpdf(Ln(AXValue), p1, p2)/AXValue;
-    sdtGalton: Result := Normalpdf(Ln(AXValue-p3), p1, p2)/(AXValue-p3);
-    sdtExponential: Result := Exponentialpdf(AXValue, p2, p1);
+    sdtNormal, sdtLNormal: Result := Normalpdf(AXValue, p1, p2);
+    sdtLogNormal: Result := LogNormalpdf(AXValue, p1, p2);
+    sdtGalton: Result := Galtoncdf(AXValue, p1, p2, p3);
+    sdtExponential, sdtLExponential: Result := Exponentialpdf(AXValue, p2, p1);
     sdtGamma: Result := Gammapdf(AXValue, p1, p2);
-    sdtPearsonIII: Result := Gammapdf(AXValue-p3, p1, p2);
-    sdtLogPearsonIII: Result := Gammapdf(Ln(AXValue)-p3, p1, p2)/AXValue;
-    sdtPareto: Result := Paretopdf(AXValue, p1, p2, p3);
-    sdtEV1Max: Result := EV1Maxpdf(AXValue, p1, p2);
-    sdtEV2Max: Result := EV2Maxpdf(AXValue, p1, p2);
-    sdtEV1Min: Result := EV1Minpdf(AXValue, p1, p2);
-    sdtEV3Min: Result := Weibpdf(AXValue, p1, p2);
-    sdtGEVMax: Result := GEVMaxpdf(AXValue, p1, p2, p3);
-    sdtGEVMin: Result := GEVMinpdf(AXValue, p1, p2, p3);
+    sdtPearsonIII: Result := PearsonIIIpdf(AXValue, p1, p2, p3);
+    sdtLogPearsonIII: Result := LogPearsonIIIpdf(AXValue, p1, p2, p3);
+    sdtPareto, sdtLPareto: Result := Paretopdf(AXValue, p1, p2, p3);
+    sdtEV1Max, sdtLEV1Max: Result := EV1Maxpdf(AXValue, p1, p2);
+    sdtEV2Max, sdtLEV2Max: Result := EV2Maxpdf(AXValue, p1, p2);
+    sdtEV1Min, sdtLEV1Min: Result := EV1Minpdf(AXValue, p1, p2);
+    sdtEV3Min, sdtLEV3Min: Result := Weibpdf(AXValue, p1, p2);
+    sdtGEVMax, sdtLGEVMax, sdtGEVMaxK, sdtLGEVMaxK:
+      Result := GEVMaxpdf(AXValue, p1, p2, p3);
+    sdtGEVMin, sdtLGEVMin, sdtGEVMinK, sdtLGEVMinK:
+      Result := GEVMinpdf(AXValue, p1, p2, p3);
   else
     Assert(False);
   end;
@@ -1686,28 +1689,33 @@ end;
 
 function TStatisticalDistribution.InvcdfValue(AFValue: Real): Real;
 begin
+  Result := InvcdfValue(FParam1, FParam2, FParam3, AFValue);
+end;
+
+function TStatisticalDistribution.InvcdfValue(p1, p2, p3, AFValue: Real): Real;
+begin
   Result := 0;
   case FDistributionType of
-    sdtNormal, sdtLNormal: Result := InvNormalCdf(AFValue, FParam1, FParam2);
-    sdtLogNormal: Result := InvLogNormalcdf(AFValue, FParam1, FParam2);
-    sdtGalton: Result := InvGaltoncdf(AFValue, FParam2, FParam3, FParam1);
+    sdtNormal, sdtLNormal: Result := InvNormalCdf(AFValue, p1, p2);
+    sdtLogNormal: Result := InvLogNormalcdf(AFValue, p1, p2);
+    sdtGalton: Result := InvGaltoncdf(AFValue, p2, p3, p1);
     sdtExponential,sdtLExponential: Result :=
-      InvExponentialcdf(AFValue, FParam2, FParam1);
-    sdtGamma: Result := InvGammacdf(AFValue, FParam1, FParam2);
-    sdtPearsonIII: Result := InvPearsonIIIcdf(AFValue, FParam1, FParam2, FParam3);
-    sdtLogPearsonIII: Result := InvLogPearsonIIIcdf(AFValue, FParam1, FParam2,
-      FParam3);
+      InvExponentialcdf(AFValue, p2, p1);
+    sdtGamma: Result := InvGammacdf(AFValue, p1, p2);
+    sdtPearsonIII: Result := InvPearsonIIIcdf(AFValue, p1, p2, p3);
+    sdtLogPearsonIII: Result := InvLogPearsonIIIcdf(AFValue, p1, p2,
+      p3);
     sdtEV1Max, sdtLEV1Max: Result :=
-      InvEV1Maxcdf(AFValue, FParam1, FParam2);
-    sdtEV2Max, sdtLEV2Max: Result := InvEV2Maxcdf(AFValue, FParam1, FParam2);
-    sdtEV1Min, sdtLEV1Min: Result := InvEV1Mincdf(AFValue, FParam1, FParam2);
-    sdtEV3Min, sdtLEV3Min: Result := InvWeibcdf(AFValue, FParam1, FParam2);
+      InvEV1Maxcdf(AFValue, p1, p2);
+    sdtEV2Max, sdtLEV2Max: Result := InvEV2Maxcdf(AFValue, p1, p2);
+    sdtEV1Min, sdtLEV1Min: Result := InvEV1Mincdf(AFValue, p1, p2);
+    sdtEV3Min, sdtLEV3Min: Result := InvWeibcdf(AFValue, p1, p2);
     sdtGEVMax, sdtLGEVMax, sdtGEVMaxK, sdtLGEVMaxK: Result :=
-      InvGEVMaxcdf(AFValue, FParam1, FParam2, FParam3);
+      InvGEVMaxcdf(AFValue, p1, p2, p3);
     sdtGEVMin, sdtLGEVMin, sdtGEVMinK, sdtLGEVMinK: Result :=
-      InvGEVMincdf(AFValue, FParam1, FParam2, FParam3);
+      InvGEVMincdf(AFValue, p1, p2, p3);
     sdtPareto, sdtLPareto: Result :=
-      InvParetocdf(AFValue, FParam1, FParam2, FParam3);
+      InvParetocdf(AFValue, p1, p2, p3);
     else
       Assert(False);
   end;

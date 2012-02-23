@@ -91,6 +91,9 @@ function InvLogNormal2m (F, Mi, Sigma : Real) : Real;
     @SeeAlso <See Routine=LogNormalParam>
 }
 function LogNormalcdf( x, miy, sigmay: Real): Real;
+{**
+}
+function LogNormalpdf( x, miy, sigmay: Real): Real;
 {** InvLogNormal2m returns the inverted cumulative distribution
     function of a 2 parameters Log-Normal distribution, that
     is the value of a random variable that does not exceeded
@@ -117,6 +120,9 @@ procedure LogNormalParam(Mean, StandardDeviation: Real;
     @SeeAlso <See Routine=GaltonParam>    
 }
 function Galtoncdf (X, Miy, Sigmay, c: Real): Real;
+{**
+}
+function Galtonpdf (X, Miy, Sigmay, c: Real): Real;
 {** InvGaltoncdf returns the inverted cumulative distribution function
     for the Galton distribution, that is the value of a random
     variable that does not exceeded for a probability value of F.
@@ -229,6 +235,9 @@ function InvXSquareCdf(u: Real; DegreesOfFreedom: Integer): Real;
     @SeeAlso <See Routine=LogPearsonIIIcdf>
 }
 function PearsonIIIcdf (X, Kappa, Lambda, Psi: Real): Real;
+{**
+}
+function PearsonIIIpdf (X, Kappa, Lambda, Psi: Real): Real;
 {** InvPearsonIIIcdf returns the inverted cumulative distribution
     function for the PearsonIII distribution.
     @SeeAlso <See Routine=PearsonIIIcdf>
@@ -248,6 +257,9 @@ procedure PearsonIIIParam(Mean, StandardDeviation, AsymetryFactor: Real;
     @SeeAlso <See Routine=InvLogPearsonIIIcdf>
 }
 function LogPearsonIIIcdf (X, Kappa, Lambda, Psi: Real): Real;
+{**
+}
+function LogPearsonIIIpdf (X, Kappa, Lambda, Psi: Real): Real;
 {** InvLogPearsonIIIcdf returns the inverted cumulative distribution
     function for the LogPearsonIII distribution.
     @SeeAlso <See Routine=LogPearsonIIIcdf>
@@ -750,6 +762,11 @@ begin
   Result := normalcdf (ln(x), miy, sigmay);
 end;
 
+function LogNormalpdf( x, miy, sigmay: Real): Real;
+begin
+  Result := Normalpdf(Ln(x), miy, sigmay)/x;
+end;
+
 function InvLogNormalcdf( F, miy, sigmay: Real): Real;
 begin
   Result := exp(invnormalcdf (F, miy, sigmay));
@@ -767,6 +784,11 @@ begin
   if (X<=c) or (Sigmay<=0) then
     raise EInvalidArgument.Create(rsInvalidGaltonParameters);
   Result := Normalcdf( Ln(X-c),Miy, Sigmay);
+end;
+
+function Galtonpdf (X, Miy, Sigmay, c: Real): Real;
+begin
+  Result := Normalpdf(Ln(x-c), Miy, Sigmay)/(x-c);
 end;
 
 function InvGaltoncdf (F, Miy, Sigmay, c: Real): Real;
@@ -987,6 +1009,11 @@ begin
   Result := Gammacdf(X-Psi, Kappa, Lambda);
 end;
 
+function PearsonIIIpdf (X, Kappa, Lambda, Psi: Real): Real;
+begin
+  Result := Gammapdf(x-psi, Kappa, Lambda);
+end;
+
 resourcestring
   rsInvalidArgumentsXSquare =
     'Invalid arguments for X-Square distribution function';
@@ -1021,6 +1048,11 @@ end;
 function LogPearsonIIIcdf (X, Kappa, Lambda, Psi: Real): Real;
 begin
   Result := PearsonIIIcdf(Ln(X), Kappa, Lambda, Psi);
+end;
+
+function LogPearsonIIIpdf (X, Kappa, Lambda, Psi: Real): Real;
+begin
+  Result := PearsonIIIpdf(x, Kappa, Lambda, Psi)/x;
 end;
 
 function InvLogPearsonIIIcdf (F, Kappa, Lambda, Psi: Real): Real;
