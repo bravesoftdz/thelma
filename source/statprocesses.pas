@@ -1604,6 +1604,8 @@ end;
 
 procedure TStatisticalDistribution.Refresh;
 begin
+  if FDataList=nil then
+    Exit;
   FMeanValue := FDataList.MeanValue;
   FStandardDeviation := FDataList.StandardDeviation;
   FSkewness := FDataList.Skewness;
