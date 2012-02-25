@@ -487,7 +487,7 @@ type
 }
     procedure CalculateMaxLikelihoodParams(
       min1, min2, min3, max1, max2, max3:Real;
-      var param1, param2, param3: Real);
+      var param1, param2, param3: Real; var discarded: Integer);
   end;
 
 {** TStatisticalDistributionList is a class holding an object list
@@ -1631,7 +1631,7 @@ begin
   case FDistributionType of
     sdtNormal, sdtLNormal: Result := Normalpdf(AXValue, p1, p2);
     sdtLogNormal: Result := LogNormalpdf(AXValue, p1, p2);
-    sdtGalton: Result := Galtoncdf(AXValue, p1, p2, p3);
+    sdtGalton: Result := Galtonpdf(AXValue, p2, p3, p1);
     sdtExponential, sdtLExponential: Result := Exponentialpdf(AXValue, p2, p1);
     sdtGamma: Result := Gammapdf(AXValue, p1, p2);
     sdtPearsonIII: Result := PearsonIIIpdf(AXValue, p1, p2, p3);
@@ -1858,9 +1858,6 @@ end;
 
 var
   AStatisticalDistribution: TStatisticalDistribution;
-  XMin, XMax, XOpt: TArrayOfReal;
-  fopt: Real;
-  eval: Integer;
 
 function ObjectiveFunction(var X: TArrayOfReal): Real;
 begin
@@ -1869,9 +1866,13 @@ end;
 
 procedure TStatisticalDistribution.CalculateMaxLikelihoodParams(min1, min2,
       min3, max1, max2, max3:Real;
-      var param1, param2, param3: Real);
+      var param1, param2, param3: Real; var discarded: Integer);
 var
   Dummy: Boolean;
+  XMin, XMax, XOpt: TArrayOfReal;
+  AMinX, AMaxX: Real;
+  fopt: Real;
+  i, eval: Integer;
 begin
   AStatisticalDistribution := Self;
   try
@@ -1894,6 +1895,12 @@ begin
       param1 := XOpt[0];
       param2 := XOpt[1];
       param3 := XOpt[2];
+      discarded := 0;
+      AMinX := GetMinXAtP(param1, param2, param3);
+      AMaxX := GetMaxXAtP(param1, param2, param3);
+      for i := 0 to FDataList.Count - 1 do
+        if (FDataList[i].Value>=AMaxX) or (FDataList[i].Value<=AMinX) then
+          Inc(discarded);
   finally
     {Dereference}
     AStatisticalDistribution := nil;

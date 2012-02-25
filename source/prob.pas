@@ -1052,7 +1052,7 @@ end;
 
 function LogPearsonIIIpdf (X, Kappa, Lambda, Psi: Real): Real;
 begin
-  Result := PearsonIIIpdf(x, Kappa, Lambda, Psi)/x;
+  Result := PearsonIIIpdf(Ln(x), Kappa, Lambda, Psi)/x;
 end;
 
 function InvLogPearsonIIIcdf (F, Kappa, Lambda, Psi: Real): Real;
