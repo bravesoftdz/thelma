@@ -129,6 +129,11 @@ begin
     ACount := 0;
     for i := 1 to MCSample[0].Size do
     begin
+      if (i mod 100)=0 then
+      begin
+        AProgressIndicator(AStop);
+        if AStop then raise EStopByUser.Create(rsProcessTerminatedByUser);
+      end;
       for k := 0 to CountP do
         MCSample[k][i] := ErrorValue;
       try
@@ -144,7 +149,7 @@ begin
 {Invert... to get a simulation value}
         MCSample[0][i] := SimulDistribution.InvcdfValue(F);
         MCSample[1][i] := SimulDistribution.Parameter1;
-        if CountP=2 then MCSample[2][i] := SimulDistribution.Parameter2;
+        MCSample[2][i] := SimulDistribution.Parameter2;
         if CountP=3 then MCSample[3][i] := SimulDistribution.Parameter3;
 {Calculate variation of parameters only if CalcVarParam is true}
         if CalcVarParam then
@@ -161,11 +166,6 @@ begin
           Continue;
         else
           raise;
-      end;
-      if (i mod 100)=0 then
-      begin
-        AProgressIndicator(AStop);
-        if AStop then raise EStopByUser.Create(rsProcessTerminatedByUser);
       end;
       Inc(ACount);
     end;
@@ -297,14 +297,14 @@ begin
         (DeltaFactor*ADistribution.StatParameter2);
     end;
 {Stage IV: Calculate DL3}
-    for i := 0 to CountP do
+    if ADistribution.ParameterCount = 3 then
     begin
-      if ADistribution.ParameterCount = 3 then
+      ADistribution.MultiplyStatParam(1,1,1+DeltaFactor);
+      FillList(MCSample, SampleCount, AFValue, ADistribution,
+        PreVarParam1, PreVarParam2, PreVarParam3, False, AProgressIndicator);
+      ADistribution.Refresh;
+      for i := 0 to CountP do
       begin
-        ADistribution.MultiplyStatParam(1,1,1+DeltaFactor);
-        FillList(MCSample, SampleCount, AFValue, ADistribution,
-          PreVarParam1, PreVarParam2, PreVarParam3, False, AProgressIndicator);
-        ADistribution.Refresh;
         CentralDL3[i] := InterpolListItem(MCSample[i],0.500);
         UpperDL3[i] := InterpolListItem(MCSample[i],(MCConfidenceLevel+1)*0.5);
         LowerDL3[i] := InterpolListItem(MCSample[i],(1-MCConfidenceLevel)*0.5);
@@ -314,12 +314,15 @@ begin
           (DeltaFactor*ADistribution.StatParameter3);
         LowerDL3[i] := (LowerDL3[i]-Lower[i])/
           (DeltaFactor*ADistribution.StatParameter3);
-      end else begin
+      end;
+    end else begin
+      for i := 0 to CountP do
+      begin
         CentralDL3[i] := 0;
         UpperDL3[i] := 0;
         LowerDL3[i] := 0;
-        VarParam3 := 0;
       end;
+      VarParam3 := 0;
     end;
 {Calculate derivatives}
     for i := 0 to CountP do
