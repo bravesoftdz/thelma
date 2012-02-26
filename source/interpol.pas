@@ -1162,6 +1162,7 @@ var
   Logarithmic, Extension: Boolean;
   Offset: Real;
   ACurvePoint: TCurvePoint;
+  isFirstLine: Boolean;
 
 begin
   SavedFileMode := FileMode;
@@ -1189,14 +1190,23 @@ begin
 
     for i := 0 to ACount-1 do
     begin
-
+      isFirstLine := True;
       Preamble.Clear;
       while True do
       begin
         ReadLn(F, s);
         Inc(LineNo);
-        if s='' then Break;
+        if s='' then
+        begin
+          if isFirstLine then
+          begin
+            isFirstLine := False;
+            Continue;
+          end else
+          Break;
+        end;
         Preamble.Add(s);
+        isFirstLine := False;
       end;
 
       StartDate := FormatStrToDateTime(DateFormat,
@@ -1299,6 +1309,7 @@ begin
         WriteLn(F, FloatToStr(TTransientCurve(Items[i]).Points[j].Independent),
           Delimiter,FloatToStr(TTransientCurve(Items[i]).Points[j].Dependent));
       end;
+      if i<Count-1 then WriteLn(F,'');
     end;
   finally
     SysUtils.DecimalSeparator := SavedDecimalSeparator;
