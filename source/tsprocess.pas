@@ -746,11 +746,11 @@ begin
   SourceEndCSecs := DateTimeToC(Source.Last.Date)*86400;
   DestStartCSecs := (Int(SourceStartCSecs/StepSeconds) + 1)*StepSeconds +
     TimeOffset*60;
-  while DestStartCSecs>SourceStartCSecs+StepSeconds/2 do
+  while DestStartCSecs>SourceStartCSecs do
     DestStartCSecs := DestStartCSecs - StepSeconds;
   DestEndCSecs := (Int(SourceEndCSecs/StepSeconds) - 2)*StepSeconds +
     TimeOffset*60; { -2 rather than -1 in case it's negative }
-  while DestEndCSecs<SourceEndCSecs-StepSeconds/2 do
+  while DestEndCSecs<=SourceEndCSecs-StepSeconds/2 do
     DestEndCSecs := DestEndCSecs + StepSeconds;
 
   { Delete relevant part of Dest }
