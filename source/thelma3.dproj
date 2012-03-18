@@ -84,6 +84,7 @@
 			<DCCReference Include="isets.pas"/>
 			<DCCReference Include="tsarea.pas"/>
 			<DCCReference Include="itzones.pas"/>
+			<DCCReference Include="climacgr.pas"/>
 			<DCCReference Include="ts.dcr"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>

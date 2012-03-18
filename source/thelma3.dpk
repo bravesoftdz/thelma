@@ -66,6 +66,7 @@ contains
   sparsolv in 'sparsolv.pas',
   isets in 'isets.pas',
   tsarea in 'tsarea.pas',
-  itzones in 'itzones.pas';
+  itzones in 'itzones.pas',
+  climacgr in 'climacgr.pas';
 
 end.
