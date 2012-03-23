@@ -16,6 +16,8 @@ uses ts;
 
 {** Standard deviation for a series ATimeseries, aggregated to scale SScale.
     Original code by d.k. in VBA:
+    Returns -1 if there are to few groups to calculate standard
+    deviation.
     https://openmeteo.org/code/ticket/256
 }
 function AggrStDev(ATimeseries: TTimeseries; SScale: Integer): Real;
@@ -37,25 +39,38 @@ type
 
 function AggrStDev(ATimeseries: TTimeseries; SScale: Integer): Real;
 var
-  i, j, Count: Integer;
+  i, j, t, Count, NotNullCount: Integer;
+  IgnoreFlag: Boolean;
   Sum: Real;
   aa: TArrayOfReal;
 begin
   Count := ATimeseries.Count div SScale;
+  NotNullCount = Count;
   aa := nil;
   try
     SetLength(aa, Count);
+    t := 0;
     for i := 0 to Count - 1 do
     begin
+      IgnoreFlag = False;
       Sum := 0;
       for j := i*SScale to (i+1)*SScale - 1 do
         if ATimeseries[j].IsNull then
-          Continue
+          IgnoreFlag := True
         else
           Sum := Sum + ATimeseries[j].AsFloat;
-      aa[i] := Sum;
+      if IgnoreFlag then
+      begin
+        Dec(NotNullCount);
+        Continue;
+      end;
+      aa[t] := Sum;
+      Inc(t);
     end;
-    Result := sqrt(variance(aa, Count))/SScale;
+    if NotNullCount>1 then
+      Result := sqrt(variance(aa, NotNullCount))/SScale
+    else
+      Result := -1;
   finally
     aa := nil;
   end;
