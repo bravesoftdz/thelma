@@ -25,6 +25,7 @@ function AggrStDev(ATimeseries: TTimeseries; SScale: Integer): Real;
 {** Standard deviation (all) for a series ATimeseries, aggregated to scale SScale.
     This is the second version and it considers all possible sums for a given
     scale.
+    Returns -1 if there are to few data to calculate.
     Original code by d.k. in VBA:
     https://openmeteo.org/code/ticket/256
 }
@@ -45,19 +46,21 @@ var
   aa: TArrayOfReal;
 begin
   Count := ATimeseries.Count div SScale;
-  NotNullCount = Count;
+  NotNullCount := Count;
   aa := nil;
   try
     SetLength(aa, Count);
     t := 0;
     for i := 0 to Count - 1 do
     begin
-      IgnoreFlag = False;
+      IgnoreFlag := False;
       Sum := 0;
       for j := i*SScale to (i+1)*SScale - 1 do
         if ATimeseries[j].IsNull then
-          IgnoreFlag := True
-        else
+        begin
+          IgnoreFlag := True;
+          Break;
+        end else
           Sum := Sum + ATimeseries[j].AsFloat;
       if IgnoreFlag then
       begin
@@ -78,35 +81,58 @@ end;
 
 function AggrStDevAll(ATimeseries: TTimeseries; SScale: Integer): Real;
 var
-  i, j, k, Count: Integer;
+  i, j, k, t, c, Count, NotNullCount, NotNullScale: Integer;
+  IgnoreFlag: Boolean;
   Sum: Real;
   b, aa: TArrayOfReal;
 begin
   b := nil;
   try
     SetLength(b, SScale);
+    c := 0;
+    NotNullScale := SScale;
     for k := 0 to SScale - 1 do
     begin
       Count := (ATimeseries.Count - k) div SScale;
+      NotNullCount := Count;
       aa := nil;
       try
         SetLength(aa, Count);
+        t := 0;
         for i := 0 to Count - 1 do
         begin
+          IgnoreFlag := False;
           Sum := 0;
           for j := i*SScale+k to (i+1)*SScale+k - 1 do
             if ATimeseries[j].IsNull then
-              Continue
-            else
+            begin
+              IgnoreFlag := True;
+              Break;
+            end else
               Sum := Sum + ATimeseries[j].AsFloat;
-          aa[i] := Sum;
+          if IgnoreFlag then
+          begin
+            Dec(NotNullCount);
+            Continue;
+          end;
+          aa[t] := Sum;
+          Inc(t);
         end;
-        b[k] := Sqrt(variance(aa, Count));
+        if NotNullCount>1 then
+          b[c] := Sqrt(variance(aa, NotNullCount))
+        else begin
+          Dec(NotNullScale);
+          Continue;
+        end;
+        Inc(c);
       finally
         aa := nil;
       end;
     end;
-    Result := mean(b, SScale) / SScale;
+    if NotNullScale>0 then
+      Result := mean(b, NotNullScale) / SScale
+    else
+      Result := -1;
   finally
     b := nil;
   end;
