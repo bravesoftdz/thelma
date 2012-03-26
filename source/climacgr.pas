@@ -33,7 +33,7 @@ function AggrStDevAll(ATimeseries: TTimeseries; SScale: Integer): Real;
 
 implementation
 
-uses math, stat2;
+uses math, stat2, dates;
 
 type
   TArrayOfReal = array of real;
@@ -57,6 +57,11 @@ begin
       Sum := 0;
       for j := i*SScale to (i+1)*SScale - 1 do
         if ATimeseries[j].IsNull then
+        begin
+          IgnoreFlag := True;
+          Break;
+        end else if (j>i*SScale) and (Abs(DiffInSecs(ATimeseries[j].Date,
+                   ATimeseries.TimeStep.IncStep(ATimeseries[j-1].Date)))>2) then
         begin
           IgnoreFlag := True;
           Break;
@@ -105,6 +110,11 @@ begin
           Sum := 0;
           for j := i*SScale+k to (i+1)*SScale+k - 1 do
             if ATimeseries[j].IsNull then
+            begin
+              IgnoreFlag := True;
+              Break;
+            end else if (j>i*SScale+k) and (Abs(DiffInSecs(ATimeseries[j].Date,
+                   ATimeseries.TimeStep.IncStep(ATimeseries[j-1].Date)))>2) then
             begin
               IgnoreFlag := True;
               Break;
