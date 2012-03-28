@@ -33,22 +33,49 @@ function AggrStDevAll(ATimeseries: TTimeseries; SScale: Integer): Real;
 
 implementation
 
-uses math, stat2, dates;
+uses math, stat2, dates, tsprocess;
+
+function GetPeriod(ATimeseries: TTimeseries): TDateTimeList;
+var
+  Begining, Ending, ADateTime: TDateTime;
+begin
+  Result := nil;
+  try
+    Result := TDateTimeList.Create;
+    if ATimeseries.Count<1 then
+      Exit;
+    Begining := ATimeseries.DownTimestamp(ATimeseries.First.Date);
+    Ending := ATimeseries.UpTimestamp(ATimeseries.Last.Date);
+    ADateTime := Begining;
+    while DiffInSecs(ADateTime, Ending)<=1 do
+    begin
+      Result.Add(ADateTime);
+      ADateTime := ATimeseries.NextTimestamp(ADateTime);
+    end;
+  except
+    Result.Free;
+    raise
+  end;
+end;
 
 type
   TArrayOfReal = array of real;
 
 function AggrStDev(ATimeseries: TTimeseries; SScale: Integer): Real;
 var
-  i, j, t, Count, NotNullCount: Integer;
+  i, j, t, Index, Count, NotNullCount: Integer;
   IgnoreFlag: Boolean;
   Sum: Real;
   aa: TArrayOfReal;
+  Period: TDateTimeList;
 begin
-  Count := ATimeseries.Count div SScale;
-  NotNullCount := Count;
+  Assert(ATimeseries.TimeStepStrict);
   aa := nil;
+  Period := nil;
   try
+    Period := GetPeriod(ATimeseries);
+    Count := Period.Count div SScale;
+    NotNullCount := Count;
     SetLength(aa, Count);
     t := 0;
     for i := 0 to Count - 1 do
@@ -56,17 +83,15 @@ begin
       IgnoreFlag := False;
       Sum := 0;
       for j := i*SScale to (i+1)*SScale - 1 do
-        if ATimeseries[j].IsNull then
-        begin
-          IgnoreFlag := True;
-          Break;
-        end else if (j>i*SScale) and (Abs(DiffInSecs(ATimeseries[j].Date,
-                   ATimeseries.TimeStep.IncStep(ATimeseries[j-1].Date)))>2) then
+      begin
+        Index := ATimeseries.IndexOf(Period[j]);
+        if (Index<0) or ATimeseries[Index].IsNull then
         begin
           IgnoreFlag := True;
           Break;
         end else
-          Sum := Sum + ATimeseries[j].AsFloat;
+          Sum := Sum + ATimeseries[Index].AsFloat;
+      end;
       if IgnoreFlag then
       begin
         Dec(NotNullCount);
@@ -80,25 +105,30 @@ begin
     else
       Result := -1;
   finally
+    Period.Free;
     aa := nil;
   end;
 end;
 
 function AggrStDevAll(ATimeseries: TTimeseries; SScale: Integer): Real;
 var
-  i, j, k, t, c, Count, NotNullCount, NotNullScale: Integer;
+  i, j, k, t, c, Index, Count, NotNullCount, NotNullScale: Integer;
   IgnoreFlag: Boolean;
   Sum: Real;
   b, aa: TArrayOfReal;
+  Period: TDateTimeList;
 begin
+  Assert(ATimeseries.TimeStepStrict);
   b := nil;
+  Period := nil;
   try
     SetLength(b, SScale);
     c := 0;
     NotNullScale := SScale;
+    Period := GetPeriod(ATimeseries);
     for k := 0 to SScale - 1 do
     begin
-      Count := (ATimeseries.Count - k) div SScale;
+      Count := (Period.Count - k) div SScale;
       NotNullCount := Count;
       aa := nil;
       try
@@ -109,17 +139,15 @@ begin
           IgnoreFlag := False;
           Sum := 0;
           for j := i*SScale+k to (i+1)*SScale+k - 1 do
-            if ATimeseries[j].IsNull then
-            begin
-              IgnoreFlag := True;
-              Break;
-            end else if (j>i*SScale+k) and (Abs(DiffInSecs(ATimeseries[j].Date,
-                   ATimeseries.TimeStep.IncStep(ATimeseries[j-1].Date)))>2) then
+          begin
+            Index := ATimeseries.IndexOf(Period[j]);
+            if (Index<0) or ATimeseries[Index].IsNull then
             begin
               IgnoreFlag := True;
               Break;
             end else
-              Sum := Sum + ATimeseries[j].AsFloat;
+              Sum := Sum + ATimeseries[Index].AsFloat;
+          end;
           if IgnoreFlag then
           begin
             Dec(NotNullCount);
@@ -144,6 +172,7 @@ begin
     else
       Result := -1;
   finally
+    Period.Free;
     b := nil;
   end;
 end;
