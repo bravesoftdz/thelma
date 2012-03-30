@@ -1960,6 +1960,9 @@ function TTimeseries.AddToFlagList(FlagString: string): Integer;
 var
   i, AIndex: Integer;
 begin
+  for i := 1 to Length(FlagString) do
+    if Ord(FlagString[i])>127 then
+      FlagString[i]:='?';
   AIndex := FFlagStringList.Add(FlagString);
   if FFlagStringList.Count>FFlagUnsortedList.Count then
   begin
