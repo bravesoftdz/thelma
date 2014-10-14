@@ -709,12 +709,12 @@ var
   SavedDecimalSeparator, Delimiter: Char;
 begin
   AssignFile(F, FileName);
-  SavedDecimalSeparator := SysUtils.DecimalSeparator;
+  SavedDecimalSeparator := SysUtils.FormatSettings.DecimalSeparator;
   try
     Reset(F);
     Clear;
     Delimiter := ',';
-    SysUtils.DecimalSeparator := '.';
+    SysUtils.FormatSettings.DecimalSeparator := '.';
     while not eof(F) do
     begin
       Readln(F, s);
@@ -722,7 +722,7 @@ begin
         StrToFloat(DelimitedStringItem(s, 2, Delimiter)));
     end;
   finally
-    SysUtils.DecimalSeparator := SavedDecimalSeparator;
+    SysUtils.FormatSettings.DecimalSeparator := SavedDecimalSeparator;
     CloseFile(F);
   end;
 end;
@@ -733,15 +733,15 @@ var
   i: Integer;
   SavedDecimalSeparator: Char;
 begin
-  SavedDecimalSeparator := SysUtils.DecimalSeparator;
+  SavedDecimalSeparator := SysUtils.FormatSettings.DecimalSeparator;
   AssignFile(F, FileName);
   try
     Rewrite(F);
-    SysUtils.DecimalSeparator := '.';
+    SysUtils.FormatSettings.DecimalSeparator := '.';
     for i := 0 to Count-1 do
       WriteLn(F, FloatToStr(Nodes[i].x),',',FloatToStr(Nodes[i].y) );
   finally
-    SysUtils.DecimalSeparator := SavedDecimalSeparator;
+    SysUtils.FormatSettings.DecimalSeparator := SavedDecimalSeparator;
     CloseFile(F);
   end;
 end;

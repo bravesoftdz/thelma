@@ -185,9 +185,9 @@ var
   SavedDecimalSeparator: Char;
 begin
   AStringList := nil;
-  SavedDecimalSeparator := SysUtils.DecimalSeparator;
+  SavedDecimalSeparator := SysUtils.FormatSettings.DecimalSeparator;
   try
-    SysUtils.DecimalSeparator := '.';
+    SysUtils.FormatSettings.DecimalSeparator := '.';
     AStringList := TStringList.Create;
     AStringList.Text := TimeZonesString;
     SetLength(TimeZonesArray, AStringList.Count);
@@ -201,7 +201,7 @@ begin
       end;
   finally
     AStringList.Free;
-    SysUtils.DecimalSeparator := SavedDecimalSeparator;
+    SysUtils.FormatSettings.DecimalSeparator := SavedDecimalSeparator;
   end;
 end;
 

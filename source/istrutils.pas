@@ -469,21 +469,21 @@ var
     Result := '';
     if AValue = '' then Exit;
     ARealValue := StrToFloat(AValue);
-    ASavedDecSeparator := SysUtils.DecimalSeparator;
+    ASavedDecSeparator := SysUtils.FormatSettings.DecimalSeparator;
     try
-      SysUtils.DecimalSeparator := '.';
+      SysUtils.FormatSettings.DecimalSeparator := '.';
       Result := FloatToStr(ARealValue);
     finally
-      SysUtils.DecimalSeparator := ASavedDecSeparator;
+      SysUtils.FormatSettings.DecimalSeparator := ASavedDecSeparator;
     end;
   end;
 
 begin
   AStreamReader := nil;
   AStreamWriter := nil;
-  SavedDecimalSeparator := SysUtils.DecimalSeparator;
+  SavedDecimalSeparator := SysUtils.FormatSettings.DecimalSeparator;
   try
-    SysUtils.DecimalSeparator := Options.DecimalSymbol;
+    SysUtils.FormatSettings.DecimalSeparator := Options.DecimalSymbol;
     AStreamReader := TStreamReader.Create(Input, Options.Encoding);
     AStreamWriter := TStreamWriter.Create(Output, Options.Encoding);
     ADateFormat := Options.DateFormat;
@@ -528,7 +528,7 @@ begin
         end;
       end;
   finally
-    SysUtils.DecimalSeparator := SavedDecimalSeparator;
+    SysUtils.FormatSettings.DecimalSeparator := SavedDecimalSeparator;
     if AStreamWriter<>nil then AStreamWriter.Close;
     if AStreamReader<>nil then AStreamReader.Close;
     AStreamWriter.Free;

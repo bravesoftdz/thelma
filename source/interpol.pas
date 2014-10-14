@@ -1169,7 +1169,7 @@ begin
   AssignFile(F, FileName);
   LineNo := 0;
   Preamble := nil;
-  SavedDecimalSeparator := SysUtils.DecimalSeparator;
+  SavedDecimalSeparator := SysUtils.FormatSettings.DecimalSeparator;
   try try
     FileMode := fmOpenRead or fmShareDenyWrite;
     Preamble := TStringList.Create;
@@ -1183,7 +1183,7 @@ begin
       Preamble.Add(s);
     end;
     Delimiter := StrToChar(GetValue(Preamble, 'Delimiter'));
-    SysUtils.DecimalSeparator :=
+    SysUtils.FormatSettings.DecimalSeparator :=
       StrToChar(GetValue(Preamble, 'DecimalSeparator'));
     DateFormat := GetValue(Preamble, 'DateFormat');
     ACount := StrToInt(GetValue(Preamble, 'Count'));
@@ -1259,7 +1259,7 @@ begin
 
     end;
   finally
-    SysUtils.DecimalSeparator := SavedDecimalSeparator;
+    SysUtils.FormatSettings.DecimalSeparator := SavedDecimalSeparator;
     Preamble.Free;
     CloseFile(F);
     FileMode := SavedFileMode;
@@ -1282,11 +1282,11 @@ var
   i, j: Integer;
   SavedDecimalSeparator: Char;
 begin
-  SavedDecimalSeparator := SysUtils.DecimalSeparator;
+  SavedDecimalSeparator := SysUtils.FormatSettings.DecimalSeparator;
   AssignFile(F, FileName);
   try
     Rewrite(F);
-    SysUtils.DecimalSeparator := DecimalSeparator;
+    SysUtils.FormatSettings.DecimalSeparator := DecimalSeparator;
     WriteLn(F, 'Delimiter="', Delimiter, '"');
     WriteLn(F, 'DecimalSeparator="', DecimalSeparator, '"');
     WriteLn(F, 'DateFormat="', DateFormat, '"');
@@ -1312,7 +1312,7 @@ begin
       if i<Count-1 then WriteLn(F,'');
     end;
   finally
-    SysUtils.DecimalSeparator := SavedDecimalSeparator;
+    SysUtils.FormatSettings.DecimalSeparator := SavedDecimalSeparator;
     CloseFile(F);
   end;
 end;

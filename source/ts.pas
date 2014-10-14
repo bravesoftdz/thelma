@@ -11,7 +11,7 @@ unit ts;
 
 interface
 
-uses Classes, SysUtils, Dates, Contnrs, istrutils, GenUtils;
+uses System.Classes, SysUtils, Dates, Contnrs, istrutils, GenUtils;
 
 const
   StandardFlags = 'RANGE SPATIAL TEMPORAL INTERNAL ESTIMATED '+
@@ -2538,9 +2538,9 @@ var
   ADate: TDateTime;
   s: string;
 begin
-  SavedDecimalSeparator := Sysutils.DecimalSeparator;
+  SavedDecimalSeparator := SysUtils.FormatSettings.DecimalSeparator;
   try
-    Sysutils.DecimalSeparator := '.';
+    SysUtils.FormatSettings.DecimalSeparator := '.';
     while not AStreamReader.EndOfStream do
     begin
       s := AStreamReader.ReadLine;
@@ -2559,7 +2559,7 @@ begin
       end;
     end;
   finally
-    Sysutils.DecimalSeparator := SavedDecimalSeparator;
+    Sysutils.FormatSettings.DecimalSeparator := SavedDecimalSeparator;
     Modified := True;
   end;
 end;
@@ -2601,8 +2601,8 @@ var
   ProgressIndicatorIsActive: Boolean;
   s: string;
 begin
-  SavedDecimalSeparator := Sysutils.DecimalSeparator;
-  Sysutils.DecimalSeparator := ADecimalSeparator;
+  SavedDecimalSeparator := Sysutils.FormatSettings.DecimalSeparator;
+  Sysutils.FormatSettings.DecimalSeparator := ADecimalSeparator;
   LineNo := FirstLine;
   ASize := AStreamReader.BaseStream.Size;
   ProgressIndicatorIsActive := @ProgressIndicator<>nil;
@@ -2636,7 +2636,7 @@ begin
     if ProgressIndicatorIsActive then ProgressIndicator(ASize div 100,
       ASize div 100);
   finally
-    Sysutils.DecimalSeparator := SavedDecimalSeparator;
+    Sysutils.FormatSettings.DecimalSeparator := SavedDecimalSeparator;
     Modified := False;
   end;
   except
@@ -2749,7 +2749,7 @@ var
     ADelimiter := StrToChar(GetValue(Preamble, 'Delimiter'));
     AFlagDelimiter := StrToChar(GetValue(Preamble, 'FlagDelimiter'));
     ADecimalSeparator := StrToChar(GetValue(Preamble, 'DecimalSeparator'));
-    SysUtils.DecimalSeparator := ADecimalSeparator;
+    SysUtils.FormatSettings.DecimalSeparator := ADecimalSeparator;
     ADateFormat := GetValue(Preamble, 'DateFormat');
     FFileVersion := 1;
     TimeStep := GetTimestepFromOrdinalValue(
@@ -2784,7 +2784,7 @@ var
     ADelimiter := ',';
     AFlagDelimiter := ' ';
     ADecimalSeparator := '.';
-    SysUtils.DecimalSeparator := ADecimalSeparator;
+    SysUtils.FormatSettings.DecimalSeparator := ADecimalSeparator;
     ADateFormat := 'yyyy-mm-dd hh:nn';
     FFileVersion := 2;
     MUnit := '';
@@ -2849,7 +2849,7 @@ begin
   Assert(FileVersion in [1,2]);
   LineNo := FirstLine-1;
   Preamble := nil;
-  SavedDecimalSeparator := SysUtils.DecimalSeparator;
+  SavedDecimalSeparator := SysUtils.FormatSettings.DecimalSeparator;
   try try
     Preamble := TStringList.Create;
     Clear;
@@ -2866,7 +2866,7 @@ begin
       ReadVersion2Section;
     Result := LineNo;
   finally
-    SysUtils.DecimalSeparator := SavedDecimalSeparator;
+    SysUtils.FormatSettings.DecimalSeparator := SavedDecimalSeparator;
     Preamble.Free;
   end;
   except
@@ -3026,10 +3026,10 @@ var
   end;
 
 begin
-  SavedDecimalSeparator := Sysutils.DecimalSeparator;
+  SavedDecimalSeparator := Sysutils.FormatSettings.DecimalSeparator;
   ProgressIndicatorIsActive := @ProgressIndicator<>nil;
   try
-    Sysutils.DecimalSeparator := '.';
+    Sysutils.FormatSettings.DecimalSeparator := '.';
     Delimiter := ',';
     FlagDelimiter := ' ';
     DateFormat := 'yyyy-mm-dd hh:nn';
@@ -3045,7 +3045,7 @@ begin
     if ProgressIndicatorIsActive then
       ProgressIndicator(Count, Count);
   finally
-    Sysutils.DecimalSeparator := SavedDecimalSeparator;
+    Sysutils.FormatSettings.DecimalSeparator := SavedDecimalSeparator;
   end;
 end;
 

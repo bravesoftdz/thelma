@@ -11,7 +11,7 @@ unit Dates;
 
 interface
 
-uses SysUtils, GenUtils;
+uses AnsiStrings, SysUtils, GenUtils;
 
 {** Tolerance for comparing TDateTime types.
 Since TDateTime is a Double, testing for equality is not really possible;
@@ -360,15 +360,15 @@ begin
   CurrentCenturyBase := (CurrentYear div 100)*100;
   CurrentTwoDigitYear := CurrentYear-CurrentCenturyBase;
   Result := CurrentCenturyBase+TwoDigitYear;
-  if TwoDigitYearCenturyWindow=0 then Exit;
-  i := CurrentTwoDigitYear-TwoDigitYearCenturyWindow;
+  if FormatSettings.TwoDigitYearCenturyWindow=0 then Exit;
+  i := CurrentTwoDigitYear-FormatSettings.TwoDigitYearCenturyWindow;
   if i>=0 then
   begin
     if TwoDigitYear<i then
       Inc(Result, 100);
     Exit;
   end;
-  i := CurrentTwoDigitYear+TwoDigitYearCenturyWindow;
+  i := CurrentTwoDigitYear+FormatSettings.TwoDigitYearCenturyWindow;
   if i>=100 then Exit;
   if TwoDigitYear>i then
     Dec(Result, 100);
@@ -387,8 +387,9 @@ function GetDateFormat(DateString: string; Options: TGetDateFormatOptions;
 var
   i: Integer;
 begin
-  AllowedFormats[6] := ShortDateFormat + ' ' + ShortTimeFormat;
-  AllowedFormats[7] := ShortDateFormat;
+  AllowedFormats[6] := FormatSettings.ShortDateFormat + ' '
+                       + FormatSettings.ShortTimeFormat;
+  AllowedFormats[7] := FormatSettings.ShortDateFormat;
   Result := '';
   { Check the special hydrological year case first (because it takes
     precedence over YYYY-MM when the latter also matches). }
@@ -616,7 +617,7 @@ var
 	'D':
 	  begin
 	    GetCount;
-	    if Count=5 then ReadFormat(Pointer(ShortDateFormat))
+	    if Count=5 then ReadFormat(Pointer(FormatSettings.ShortDateFormat))
 	    else if Count>=3 then RaiseInvalidFormat
 	    else if Day<>65535 then RaiseInvalidFormat
 	    else Day := ReadNumber;
@@ -678,16 +679,16 @@ var
 	    end else if StrLIComp(P, 'AMPM', 4) = 0 then
 	    begin
 	      Inc(Format, 3);
-	      if StrLIComp(PDateString, PChar(TimePMString),
-              Length(TimePMString)) = 0 then
+	      if StrLIComp(PDateString, PChar(FormatSettings.TimePMString),
+              Length(FormatSettings.TimePMString)) = 0 then
 	      begin
-	        Inc(PDateString, Length(TimePMString));
+	        Inc(PDateString, Length(FormatSettings.TimePMString));
 		if Hour<>12 then Inc(Hour, 12);
 	      end else
-	      if StrLIComp(PDateString, PChar(TimeAMString),
-              Length(TimeAMString)) = 0 then
+	      if StrLIComp(PDateString, PChar(FormatSettings.TimeAMString),
+              Length(FormatSettings.TimeAMString)) = 0 then
 	      begin
-	        Inc(PDateString, Length(TimeAMString));
+	        Inc(PDateString, Length(FormatSettings.TimeAMString));
 		if Hour=12 then Hour := 0;
 	      end else
 	        RaiseNoMatch;
@@ -698,16 +699,16 @@ var
 	'C':
 	  begin
 	    GetCount;
-	    ReadFormat(Pointer(ShortDateFormat));
-	    ReadFormat(Pointer(LongDateFormat));
+	    ReadFormat(Pointer(FormatSettings.ShortDateFormat));
+	    ReadFormat(Pointer(FormatSettings.LongDateFormat));
 	  end;
 	'/', '-':
-	  if CharInSet(PDateString^, ['/', '-', DateSeparator]) then
+	  if CharInSet(PDateString^, ['/', '-', FormatSettings.DateSeparator]) then
 	    Inc(PDateString)
 	  else
 	    RaiseNoMatch;
 	':', '.':
-	  if CharInSet(PDateString^ , [':', '.', TimeSeparator]) then
+	  if CharInSet(PDateString^ , [':', '.', FormatSettings.TimeSeparator]) then
 	    Inc(PDateString)
 	  else
 	    RaiseNoMatch;
