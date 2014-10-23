@@ -1,4 +1,4 @@
-package thelma3;
+package thelma;
 
 {$R *.res}
 {$R 'ts.dcr'}

@@ -24,7 +24,7 @@
 			<DCC_DcuOutput>..\lib</DCC_DcuOutput>
 			<DCC_DependencyCheckOutputName>..\bin\thelmatest.exe</DCC_DependencyCheckOutputName>
 			<UsePackages>true</UsePackages>
-			<DCC_UsePackage>rtl;thelma3</DCC_UsePackage>
+			<DCC_UsePackage>rtl;thelma</DCC_UsePackage>
 			<DCC_Platform>x86</DCC_Platform>
 			<DCC_ImageBase>00400000</DCC_ImageBase>
 		</PropertyGroup>
