@@ -76,7 +76,7 @@
         <VerInfo_Build>23</VerInfo_Build>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=National Technical University of Athens;FileDescription=Thelma - Timeseries and Hydrology Extensible Library for Managing Aquasystems - Runtime Library;FileVersion=3.0.0.23;InternalName=thelma;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=3.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=National Technical University of Athens;FileDescription=Thelma - Timeseries and Hydrology Extensible Library for Managing Aquasystems - Runtime Library;FileVersion=0.0.0.0;InternalName=thelma;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=0.0.0.0;Comments=</VerInfo_Keys>
         <DCC_DcuOutput>..\lib</DCC_DcuOutput>
     </PropertyGroup>
     <ItemGroup>
@@ -143,7 +143,7 @@
                     <Source Name="MainSource">thelma3.dpk</Source>
                 </Source>
                 <VersionInfo>
-                    <VersionInfo Name="IncludeVerInfo">True</VersionInfo>
+                    <VersionInfo Name="IncludeVerInfo">False</VersionInfo>
                     <VersionInfo Name="AutoIncBuild">False</VersionInfo>
                     <VersionInfo Name="MajorVer">1</VersionInfo>
                     <VersionInfo Name="MinorVer">0</VersionInfo>
