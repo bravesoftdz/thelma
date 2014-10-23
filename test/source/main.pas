@@ -60,7 +60,7 @@ const tests: array[1..8] of TTest = (
 procedure TFrmMain.BtnTestClick(Sender: TObject);
 var
   OldCursor: TCursor;
-  i, j, k: Integer;
+  i, k: Integer;
 begin
   MemTestLog.Clear;
   Application.ProcessMessages;
@@ -71,7 +71,7 @@ begin
       if chklbUnits.Checked[i-1] then
       begin
         k := MemTestLog.Lines.Count;
-        j := MemTestLog.Lines.Add('Testing '+tests[i].name+'.pas...');
+        MemTestLog.Lines.Add('Testing '+tests[i].name+'.pas...');
         MemTestLog.Lines[k] := MemTestLog.Lines[k] + ' ' +
           tests[i].proc(chkVerbose.Checked);
       end;
