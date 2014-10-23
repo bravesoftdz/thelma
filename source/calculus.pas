@@ -53,8 +53,8 @@ type
 
     TOperator = class (TCalculus)
           public
-                constructor create(c1,c2:TCalculus);
-                destructor destroy; override;
+                constructor Create(c1,c2:TCalculus);
+                destructor Destroy; override;
           protected
                  e1,e2:TCalculus;
           end;
@@ -86,8 +86,8 @@ type
 
     TFunc = class (TCalculus)
           public
-              constructor create(v:TCalculus; f:TFuncDef);
-              destructor destroy; override;
+              constructor Create(v:TCalculus; f:TFuncDef);
+              destructor Destroy; override;
               Function eval:double; override;
           protected
               variable:TCalculus;

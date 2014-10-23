@@ -4019,7 +4019,7 @@ var
 begin
   Assert(FOwner<>nil, rsMustHaveOwnerToDoThis);
   ASavedStatus := FStatus;
-  Flag := ToUpper(Flag);
+  Flag := Flag.ToUpper();
   if FStatus>0 then
     s := FOwner.GetFromFlagList(FStatus-1);
   if Value = True then
@@ -4078,7 +4078,7 @@ begin
   begin
     FStatus := 0;
   end else
-    FStatus := FOwner.AddToFlagList(TrimAllSpaces(ToUpper(Flags)))+1;
+    FStatus := FOwner.AddToFlagList(TrimAllSpaces(Flags.ToUpper()))+1;
   if (FOwner<>nil) and (ASavedStatus<>FStatus) then
   begin
     FOwner.Modified := True;

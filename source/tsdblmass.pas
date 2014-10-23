@@ -198,6 +198,7 @@ var
   i: Integer;
 begin
   TimeseriesList := nil;
+  DateTimeList := nil;
   try
     TimeseriesList := TObjectList.Create(False);
     TimeseriesList.Add(Independent);

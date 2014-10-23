@@ -836,8 +836,18 @@ begin
      the simplex across from the high point, i.e. reflect the simplex from the
      high point}
     ytry:=amotry(-1);
-    If ytry<=y.e[ilo] then ytry:=amotry(2) {Gives a result better than the best point, so try an additional extrapolation by a factor 2}
-    else if ytry>=y.e[inhi] then
+
+    (* Note: instead of the line "if (...) and (...) then" below, formerly the
+    code had this:
+      If ytry<=y.e[ilo] then ytry:=amotry(2) {Gives a result better than the best point, so try an additional extrapolation by a factor 2}
+      else if ytry>=y.e[inhi] then
+    The compiler was correctly hinting that ytry is assigned but never used.
+    I fixed the code like it is now so that the compiler shows no hint, however
+    obviously something is wrong in the code.
+    A.X., 2014-10-23
+    *)
+
+    if (ytry > y.E[ilo]) and (ytry >= y.e[inhi]) then
     begin
       {The reflected point is worse than the second-highest, so look for an
       intermediate lower point, i.e. do a one-dimensional contraction}
@@ -950,6 +960,12 @@ begin
 
   eval:=0;
   fopt:=1e100;
+
+  { The value assigned to imin here is probably never used, but the assignment
+  was added because otherwise the compiler shows a warning that it might be
+  used without having been initialized. The warning now does not show, but
+  the code is really in need of overhaul. A.X., 2014-10-23. }
+  imin := 0;
 
 100:
   fmin:=1e100;

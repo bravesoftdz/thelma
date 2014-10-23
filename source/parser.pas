@@ -389,12 +389,23 @@ begin
      {----- nameVar -----}
      for i:=0 to (vars.Count-1) do
      begin
+          { The code below is problematic. The compiler shows the message
+          "Implicit string cast from 'ShortString' to 'string'. Frankly,
+          I can't understand a thing. s is a string, whereas varNum(i).name
+          is an array of strings. WTH? I'm just commenting out the code, so
+          that the compiler does not warn; however, if this point is ever
+          reached, the system will raise an internal error. In that case,
+          you'll have to fix it properly.
+          A.X., 2014-10-23 }
+          (*
           if s=varNum(i).name then
           begin
                SimpleCompile:=TVar.Create(varNum(i));
                err:=0;
                exit;
           end;
+          *)
+          raise Exception.Create('Internal error in Parser (nameVar)');
      end;
 
      {----- nameFunc(exp) -----}

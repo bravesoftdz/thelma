@@ -1914,6 +1914,7 @@ var
 begin
   Result := 0;
   valid_count := 0;
+  apdf := -1;
   for i := 0 to FDataList.Count-1 do
   begin
     ax := FDataList[i].Value;
