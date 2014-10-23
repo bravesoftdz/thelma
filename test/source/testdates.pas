@@ -127,8 +127,8 @@ var
   output: string;
   raised: Boolean;
 begin
-  ShortDateFormat := 'dd/mm/yyyy';
-  ShortTimeFormat := 'hh:nn';
+  FormatSettings.ShortDateFormat := 'dd/mm/yyyy';
+  FormatSettings.ShortTimeFormat := 'hh:nn';
   for i := 1 to 14 do
   begin
     d := GetDateFormatTestData[i];
