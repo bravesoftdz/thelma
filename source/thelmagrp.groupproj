@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{26BF260C-15FD-4D3F-BA70-5895BDABF1FB}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="thelma.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="thelmadsgn.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\test\thelmaTests.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="thelma">
+        <MSBuild Projects="thelma.dproj"/>
+    </Target>
+    <Target Name="thelma:Clean">
+        <MSBuild Projects="thelma.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="thelma:Make">
+        <MSBuild Projects="thelma.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="thelmadsgn">
+        <MSBuild Projects="thelmadsgn.dproj"/>
+    </Target>
+    <Target Name="thelmadsgn:Clean">
+        <MSBuild Projects="thelmadsgn.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="thelmadsgn:Make">
+        <MSBuild Projects="thelmadsgn.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="thelmaTests">
+        <MSBuild Projects="..\test\thelmaTests.dproj"/>
+    </Target>
+    <Target Name="thelmaTests:Clean">
+        <MSBuild Projects="..\test\thelmaTests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="thelmaTests:Make">
+        <MSBuild Projects="..\test\thelmaTests.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="thelma;thelmadsgn;thelmaTests"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="thelma:Clean;thelmadsgn:Clean;thelmaTests:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="thelma:Make;thelmadsgn:Make;thelmaTests:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

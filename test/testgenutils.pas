@@ -2,7 +2,13 @@ unit testgenutils;
 
 interface
 
-function test(Verbose: Boolean): string;
+uses TestFramework;
+
+type
+  TTestGenUtils = class(TTestCase)
+  published
+    procedure TestFloatPairListSort1;
+  end;
 
 implementation
 
@@ -11,8 +17,6 @@ uses SysUtils, genutils;
 type TTestArray = array[1..10,1..2] of Real;
 
 var
-
-  TestsPassed: Integer;
 
   AFloatPairListData: TTestArray = (
     (8.46, 4.05), (5.28, 3.88), (4.63, 7.82), (7.65, 8.78), (4.32, 9.49),
@@ -24,21 +28,21 @@ var
     (5.84, 5.40), (6.38, 3.46), (7.05, 7.98), (7.65, 8.78), (8.46, 4.05)
   );
 
-procedure CompareFloatPairLists(TestedList: TFloatPairList; ReferenceList:
-  TTestArray; Tolerance: Real; Description: string);
+function CompareFloatPairLists(TestedList: TFloatPairList; ReferenceList:
+  TTestArray; Tolerance: Real): Boolean;
 var i: Integer;
 begin
-   for i := 1 to TestedList.Count do
-        if (Abs(TestedList.Items[i-1].float1-ReferenceList[i,1])>Tolerance)
+  Result := True;
+  for i := 1 to TestedList.Count do
+    if (Abs(TestedList.Items[i-1].float1-ReferenceList[i,1])>Tolerance)
         or (Abs(TestedList.Items[i-1].float2-ReferenceList[i,2])>Tolerance) then
-          raise Exception.Create('Failed ' + Description + ': ('
-              + FloatToStr(TestedList.Items[i-1].float1) + ', '
-              + FloatToStr(TestedList.Items[i-1].float2) + ') != ('
-              + FloatToStr(ReferenceList[i,1]) + ', '
-              + FloatToStr(ReferenceList[i,2]) + ')');
+    begin
+      Result := False;
+      Exit;
+    end;
 end;
 
-procedure TestFloatPairListSort1;
+procedure TTestGenUtils.TestFloatPairListSort1;
 var
   AFloatPairList: TFloatPairList;
   AFloatPair: TFloatPair;
@@ -52,16 +56,10 @@ begin
     AFloatPairList.Add(AFloatPair);
   end;
   AFloatPairList.Sort1;
-  CompareFloatPairLists(AFloatPairList, ASortedFloatPairListData, 1e-4,
-    'sorting FloatPairList');
-  Inc(TestsPassed);
+  Check(CompareFloatPairLists(AFloatPairList, ASortedFloatPairListData, 1e-4));
 end;
 
-function test(Verbose: Boolean): string;
-begin
-  TestsPassed := 0;
-  TestFloatPairListSort1;
-  Result := IntToStr(TestsPassed) + ' tests passed';
-end;
+initialization
+  RegisterTest(TTestGenUtils.Suite);
 
 end.

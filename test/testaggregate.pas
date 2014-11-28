@@ -2,13 +2,17 @@ unit testaggregate;
 
 interface
 
-function test(Verbose: Boolean): string;
+uses TestFramework;
+
+type
+  TTestAggregate = class(TTestCase)
+  published
+    procedure TestAggregate;
+  end;
 
 implementation
 
 uses SysUtils, ts;
-
-var TestsPassed: Integer;
 
 function CompareTimeSeries(RefSeries, TestSeries: TTimeseries): string;
 var
@@ -41,7 +45,7 @@ begin
     if Result<> '' then Break;
   end;
   if Result<>'' then
-  Result := Result + ' when testing with '+ RefSeries.FileName;
+    Result := Result + ' when testing with '+ RefSeries.FileName;
 end;
 
 type
@@ -54,32 +58,31 @@ type
 const
   TestSets: array [0..3] of TestSet =
     (
-      ( InputFile: '..\data\AggregateTenMin.hts';
-        ResultsFile: '..\data\AggregateHourlySum.hts';
+      ( InputFile: '..\test\data\AggregateTenMin.hts';
+        ResultsFile: '..\test\data\AggregateHourlySum.hts';
         VariableType: vtCumulative;
         MissingAllowed: 3),
-      ( InputFile: '..\data\AggregateTenMin.hts';
-        ResultsFile: '..\data\AggregateHourlyAv.hts';
+      ( InputFile: '..\test\data\AggregateTenMin.hts';
+        ResultsFile: '..\test\data\AggregateHourlyAv.hts';
         VariableType: vtAverage;
         MissingAllowed: 3),
-      ( InputFile: '..\data\AggregateTenMin.hts';
-        ResultsFile: '..\data\AggregateHourlyMax.hts';
+      ( InputFile: '..\test\data\AggregateTenMin.hts';
+        ResultsFile: '..\test\data\AggregateHourlyMax.hts';
         VariableType: vtMaximum;
         MissingAllowed: 3),
-      ( InputFile: '..\data\AggregateTenMin.hts';
-        ResultsFile: '..\data\AggregateHourlyMin.hts';
+      ( InputFile: '..\test\data\AggregateTenMin.hts';
+        ResultsFile: '..\test\data\AggregateHourlyMin.hts';
         VariableType: vtMinimum;
         MissingAllowed: 3)
     );
 
-function TestAggregation(Verbose: Boolean): string;
+procedure TTestAggregate.TestAggregate;
 var
   Source, Dest, Ref: TTimeseries;
   i: Integer;
   s: string;
   Options: TAggregationOptionsRec;
 begin
-  Result := '';
   Source := nil;
   Dest := nil;
   Ref := nil;
@@ -88,6 +91,7 @@ begin
     try
       Options.MissingAllowed := TestSets[i].MissingAllowed;
       Options.MissingFlag := 'MISSING';
+      Options.SeasonalAggregation := False;
       Source := TTimeseries.Create;
       Dest := TTimeseries.Create;
       Ref := TTimeseries.Create;
@@ -95,14 +99,9 @@ begin
       Ref.LoadFromFile(TestSets[i].ResultsFile);
       Dest.TimeStep := Ref.TimeStep;
       Dest.VariableType := TestSets[i].VariableType;
-      if Verbose then
-        Result := Result+'Aggregating '+ TestSets[i].InputFile +
-        ' and comparing with '+ TestSets[i].ResultsFile +'...'#13#10;
       Source.Aggregate(Dest, nil, Options);
       s := CompareTimeSeries(Ref, Dest);
-      if s<>'' then
-        raise Exception.Create(s);
-      Inc(TestsPassed);
+      CheckEquals(s, '', s);
     finally
       Source.Free;
       Dest.Free;
@@ -114,11 +113,7 @@ begin
   end;
 end;
 
-function test(Verbose: Boolean): string;
-begin
-  TestsPassed := 0;
-  Result := Result + TestAggregation(Verbose);
-  Result := Result + IntToStr(TestsPassed) + ' tests passed';
-end;
+initialization
+  RegisterTest(TTestAggregate.Suite);
 
 end.

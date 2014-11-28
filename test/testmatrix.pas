@@ -2,7 +2,16 @@ unit testmatrix;
 
 interface
 
-function test(Verbose: Boolean): string;
+uses TestFramework;
+
+type
+
+  TTestMatrix = class(TTestCase)
+  published
+    procedure TestInvertMatrix;
+    procedure TestDeterminant;
+    procedure TestCholeskyDecompose;
+  end;
 
 implementation
 
@@ -11,8 +20,6 @@ uses SysUtils, Matrix;
 type TTestArray = array[1..4,1..4] of Real;
 
 var
-
-  TestsPassed: Integer;
 
   UMatrixData: TTestArray = (
     (0.32, 0.56, 0.56, 0.01),
@@ -85,19 +92,22 @@ var
     (0.495074, 0.676655, 0.750304, 2.869509)
   );
 
-procedure CompareMatrixes(TestedMatrix: TMatrix; ReferenceMatrix: TTestArray;
-  Tolerance: Real; Description: string);
+function MatrixesEqual(Matrix1: TMatrix; Matrix2: TTestArray; Tolerance: Real):
+  Boolean;
 var i, j: Integer;
 begin
-   for i := 1 to TestedMatrix.RowCount do
-      for j := 1 to TestedMatrix.ColCount do
-        if Abs(TestedMatrix.E[i,j]-ReferenceMatrix[i,j])>Tolerance then
-          raise Exception.Create('Failed ' + Description + ': '
-              + FloatToStr(TestedMatrix.E[i,j]) + ' != ' +
-              FloatToStr(ReferenceMatrix[i,j]));
+   Result := True;
+   for i := 1 to Matrix1.RowCount do
+      for j := 1 to Matrix1.ColCount do
+        if Abs(Matrix1.E[i,j]-Matrix2[i,j]) > Tolerance then
+        begin
+          Result := False;
+          Exit;
+        end;
 end;
 
-procedure TestInvertMatrix;
+procedure TTestMatrix.TestInvertMatrix;
+
   procedure TestInvertOneMatrix(TestedMatrix, ReferenceMatrix: TTestArray;
                                     Tolerance: Real; Description: string);
   var
@@ -107,8 +117,7 @@ procedure TestInvertMatrix;
       Length(TestedMatrix[1]), @TestedMatrix, maCopyArray);
     try
       AMatrix.Invert;
-      CompareMatrixes(AMatrix, ReferenceMatrix, Tolerance, Description);
-      Inc(TestsPassed);
+      Check(MatrixesEqual(AMatrix, ReferenceMatrix, Tolerance));
     finally
       AMatrix.Free();
     end;
@@ -123,7 +132,7 @@ begin
                                    'inverting uninteresting matrix');
 end;
 
-procedure TestDeterminant;
+procedure TTestMatrix.TestDeterminant;
 var
   AMatrix: TMatrix;
   d: Real;
@@ -131,43 +140,32 @@ begin
   AMatrix := TMatrix.CreateFromArray(4, 4, @AMatrixData, maCopyArray);
   try
     d := AMatrix.Determinant;
-    if Abs(d-AMatrixDeterminant)>0.00000002 then
-      raise Exception.Create('Failed to get matrix determinant: ' +
-        FloatToStr(d) + ' != ' + FloatToStr(AMatrixDeterminant));
-    Inc(TestsPassed);
+    Check(Abs(d - AMatrixDeterminant) <= 0.00000002);
+  finally
     AMatrix.Free();
-    AMatrix := TMatrix.CreateFromArray(3, 3, @BMatrixData, maCopyArray);
+  end;
+  AMatrix := TMatrix.CreateFromArray(3, 3, @BMatrixData, maCopyArray);
+  try
     d := AMatrix.Determinant;
-    if Abs(d-BMatrixDeterminant)>0.0000002 then
-      raise Exception.Create('Failed to get matrix determinant: ' +
-        FloatToStr(d) + ' != ' + FloatToStr(BMatrixDeterminant));
-    Inc(TestsPassed);
+    Check(Abs(d - BMatrixDeterminant) <= 0.0000002);
   finally
     AMatrix.Free();
   end;
 end;
 
-procedure TestCholeskyDecompose;
+procedure TTestMatrix.TestCholeskyDecompose;
 var AMatrix: TMatrix;
 begin
   AMatrix := TMatrix.CreateFromArray(4, 4, @CMatrixData, maCopyArray);
   try
     AMatrix.CholeskyDecompose;
-    CompareMatrixes(AMatrix, CCholeskyDecomposedMatrixData, 0.000002,
-      'performing Cholesky decomposition');
-    Inc(TestsPassed);
+    Check(MatrixesEqual(AMatrix, CCholeskyDecomposedMatrixData, 0.000002));
   finally
     AMatrix.Free();
   end;
 end;
 
-function test(Verbose: Boolean): string;
-begin
-  TestsPassed := 0;
-  TestInvertMatrix;
-  TestDeterminant;
-  TestCholeskyDecompose;
-  Result := IntToStr(TestsPassed) + ' tests passed';
-end;
+initialization
+  RegisterTest(TTestMatrix.Suite);
 
 end.

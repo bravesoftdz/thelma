@@ -1,2 +1,0 @@
-The only thing this file does is tell CVS, by its existence, that
-this directory is valid and exists though it is empty.

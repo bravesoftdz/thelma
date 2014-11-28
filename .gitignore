@@ -4,5 +4,5 @@ __history/
 *.local
 *.res
 *.otares
-test/bin/thelmatest.exe
-test/lib/*.dcu
+bin/thelmaTests.exe
+bin/dunit.ini
