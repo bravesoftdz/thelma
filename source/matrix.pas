@@ -724,7 +724,7 @@ begin
   end else if Method = maCopyArray then
   begin
     SetLength(FElements, RowCount*ColCount);
-    for i := 0 to RowCount*ColCount*SizeOf(Real)-1 do
+    for i := 0 to RowCount*ColCount-1 do
       FElements[i] := TArrayOfReal(PArrayOfDouble^)[i];
     FOwnsElements := True;
   end;
