@@ -17,6 +17,7 @@ type
     procedure TestAddDateTime;
     procedure TestHYearToDate;
     procedure TestGetDateFormat;
+    procedure TestDiffMonths;
   end;
 
 implementation
@@ -122,6 +123,18 @@ begin
   except
     on EConvertError do Check(True, 'GetDateFormat properly raised exception');
   end;
+end;
+
+procedure TTestDates.TestDiffMonths;
+begin
+  CheckEquals(DiffInMonths(StrToDateTime('1965-10-01'),
+                           StrToDateTime('1965-09-01')), 1);
+  CheckEquals(DiffInMonths(StrToDateTime('1965-10-01'),
+                           StrToDateTime('1965-10-01')), 0);
+  CheckEquals(DiffInMonths(StrToDateTime('1966-10-01'),
+                           StrToDateTime('1965-10-01')), 12);
+  CheckEquals(DiffInMonths(StrToDateTime('1965-10-01'),
+                           StrToDateTime('1966-10-01')), -12);
 end;
 
 initialization

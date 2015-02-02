@@ -13,189 +13,261 @@ interface
 
 uses AnsiStrings, SysUtils, GenUtils;
 
-{** Tolerance for comparing TDateTime types.
-Since TDateTime is a Double, testing for equality is not really possible;
-instead, it should be checked whether the difference is less than a small
-number. If two TDateTimes differ by less than idtTolerance, they are considered
-equal.
-@author A.X.
-}
-const idtTolerance = (1/86400);
+const
+  ///	<summary>
+  ///	  Tolerance for comparing <see cref="TDateTime" /> types
+  ///	</summary>
+  ///	<remarks>
+  ///	  Since <see cref="TDateTime" /> is a <see cref="Double" />, testing for
+  ///	  equality is not really possible; instead, it should be checked whether
+  ///	  the difference is less than a small number. If two
+  ///	  <see cref="TDateTime" />s differ by less than <c>idtTolerance</c>, they
+  ///	  are considered equal.
+  ///	</remarks>
+  idtTolerance = (1/86400);
 
 type
-  {** An alternative to TDateTime, suitable for times older than 1900.
-      Although TDateTime can, in theory, store dates older than 1900, the way
-      dates prior to 1900 are encoded is such that it is extremely difficult to
-      make date calculations. See the TDateTime type for more information.<p>
-      TCDateTime (standing for Continuous DateTime) uses the same encoding as
-      TDateTime for dates after 1900, that is, it uses the fractional number of
-      days since the epoch 1899-12-30 00:00. For older dates, it uses the
-      fractional number of days before the epoch. Thus, in TCDateTime, -1.25
-      stands for 1899-12-28 18:00 (=1.25 days before the epoch), whereas in
-      TDateTime -1.25 stands for 1899-12-29 06:00 (=1 day before the epoch, 0.25
-      stands for time).<p>
-      Use DateTimeToC and CToDateTime to convert between one format and the
-      other.
-      @author A.X.
-      @SeeAlso <See Routine=DateTimeToC>
-      @SeeAlso <See Routine=CToDateTime>
-      @SeeAlso <Jump File=Delphi5.hlp K="TDateTime type" Text=TDateTime>
-  }
+  ///	<summary>
+  ///	  An alternative to TDateTime, suitable for times older than 1900
+  ///	</summary>
+  ///	<remarks>
+  ///	  <para>
+  ///	    Although <see cref="TDateTime" /> can, in theory, store dates older
+  ///	    than 1900, the way dates prior to 1900 are encoded is such that it is
+  ///	    extremely difficult to make date calculations.
+  ///	  </para>
+  ///	  <para>
+  ///	    <c>TCDateTime</c> (standing for Continuous DateTime) uses the same
+  ///	    encoding as <see cref="TDateTime" /> for dates after 1900, that is,
+  ///	    it uses the fractional number of days since the epoch
+  ///	    <c>1899-12-30 00:00</c>. For older dates, it uses the fractional
+  ///	    number of days before the epoch. Thus, in <c>TCDateTime</c>, -1.25
+  ///	    stands for <c>1899-12-28 18:00</c> (=1.25 days before the epoch),
+  ///	    whereas in <c>TDateTime</c> -1.25 stands for <c>1899-12-29 06:00</c>
+  ///	    (=1 day before the epoch, 0.25 stands for time).
+  ///	  </para>
+  ///	  <para>
+  ///	    Use <see cref="DateTimeToC" /> and <see cref="CToDateTime" /> to
+  ///	    convert between one format and the other.
+  ///	  </para>
+  ///	</remarks>
   TCDateTime = Double;
 
-{** Converts a TDateTime to a TCDateTime.
-    @author A.X.
-    @SeeAlso <See Type=TCDateTime>
-    @SeeAlso <See Routine=CToDateTime>
-}
+///	<summary>
+///	  Converts a <see cref="TDateTime" /> to a <see cref="TCDateTime" />
+///	</summary>
+///	<remarks>
+///	  See also <see cref="CToDateTime" />.
+///	</remarks>
 function DateTimeToC(DateTime: TDateTime): TCDateTime;
 
-{** Converts a TCDateTime to a TDateTime.
-    @author A.X.
-    @SeeAlso <See Type=TCDateTime>
-    @SeeAlso <See Routine=DateTimeToC>
-}
+///	<summary>
+///	  Converts a <see cref="TCDateTime" /> to a <see cref="TDateTime" />
+///	</summary>
+///	<remarks>
+///	  See also <see cref="DateTimeToC" />.
+///	</remarks>
 function CToDateTime(CDateTime: TCDateTime): TDateTime;
 
-{** Subtracts or compares two dates.
-Returns the time elapsed from a to b; the difference may be negative.  For
-example, a result of -1.25 means that a comes later than b by one day and 6
-hours.<p>
-
-Unless you need precision better than a second, it is always better to use
-DiffInSecs instead, which returns an integer and thus avoids problems with
-floats, equality tests, etc.<p>
-
-SubtractDateTime may also be used to compare dates. Specifically:
-<ul>
-  <li>To check whether a=b check whether
-    <code>Abs(SubtractDateTime(a, b)) < idtTolerance</code>
-  <li>To check whether a&lt;b check whether
-    <code>SubtractDateTime(a, b) < -idtTolerance</code>
-  <li>To check whether a&gt;b check whether
-    <code>SubtractDateTime(a, b) > idtTolerance</code>
-</ul>
-For an explanation of why you need SubtractDateTime, see AddDateTime.
-@author A.X.
-@SeeAlso <See Const=idtTolerance>
-@SeeAlso <See Routine=AddDateTime>
-@SeeAlso <See Routine=DiffInSecs>
-}
+///	<summary>
+///	  Subtracts or compares two dates
+///	</summary>
+///	<remarks>
+///	  <para>
+///	    Returns the time elapsed from <c>a</c> to <c>b</c>; the difference may
+///	    be negative. For example, a result of -1.25 means that <c>a</c> precedes
+///	    <c>b</c> by one day and 6 hours.
+///	  </para>
+///	  <para>
+///	    Unless you need precision better than a second, it is always better to
+///	    use <see cref="DiffInSecs" /> instead, which returns an integer and
+///	    thus avoids problems with floats, equality tests, etc.
+///	  </para>
+///	  <para>
+///	    SubtractDateTime may also be used to compare dates. Specifically:
+///	  </para>
+///	  <list type="bullet">
+///	    <item>
+///	      To check whether <c>a = b</c> check whether
+///	      <c>Abs(SubtractDateTime(a, b)) &lt; idtTolerance</c>
+///	    </item>
+///	    <item>
+///	      To check whether <c>a &lt; b</c> check whether
+///	      <c>SubtractDateTime(a, b) &lt; -idtTolerance</c>
+///	    </item>
+///	    <item>
+///	      To check whether <c>a &gt; b</c> check whether
+///	      <c>SubtractDateTime(a, b) &gt; idtTolerance</c>
+///	    </item>
+///	  </list>
+///	  <para>
+///	    For an explanation of why you need <c>SubtractDateTime</c>, see
+///	    <see cref="AddDateTime" />. See also <see cref="idtTolerance" />.
+///	  </para>
+///	</remarks>
 function SubtractDateTime(a, b: TDateTime): Real;
 
-{** Subtracts or compares two dates.
-Returns the time elapsed from a to b, in seconds; the difference may be
-negative.  For example, a result of -90000 means that a comes later than b by
-90000 seconds.<p>
-
-If you need precision better than a second, use SubtractDateTime instead.
-
-DiffInSecs may also be used to compare dates. Specifically:
-<ul>
-  <li>To check whether a=b check whether
-    <code>DiffInSecs(a, b) = 0</code>
-  <li>To check whether a&lt;b check whether
-    <code>DiffInSecs(a, b) < 0</code>
-  <li>To check whether a&gt;b check whether
-    <code>DiffInSecs(a, b) > 0</code>
-</ul>
-@author A.X.
-@SeeAlso <See Const=idtTolerance>
-@SeeAlso <See Routine=AddDateTime>
-@SeeAlso <See Routine=SubtractDateTime>
-}
+///	<summary>
+///	  Subtracts or compares two dates
+///	</summary>
+///	<remarks>
+///	  <para>
+///	    Returns the time elapsed from <c>a</c> to <c>b</c>, in seconds; the
+///	    difference may be negative. For example, a result of -90000 means that
+///	    <c>a</c> precedes <c>b</c> by 90000 seconds.
+///	  </para>
+///	  <para>
+///	    If you need precision better than a second, use
+///	    <see cref="SubtractDateTime" /> instead.
+///	  </para>
+///	  <para>
+///	    <c>DiffInSecs</c> may also be used to compare dates. Specifically:
+///	  </para>
+///	  <list type="bullet">
+///	    <item>
+///	      To check whether <c>a = b</c> check whether
+///	      <c>DiffInSecs(a, b) = 0</c>
+///	    </item>
+///	    <item>
+///	      To check whether <c>a &lt; b</c> check whether
+///	      <c>DiffInSecs(a, b) &lt; 0</c>
+///	    </item>
+///	    <item>
+///	      To check whether <c>a &gt; b</c> check whether
+///	      <c>DiffInSecs(a, b) &gt; 0</c>
+///	    </item>
+///	  </list>
+///	</remarks>
 function DiffInSecs(a, b: TDateTime): Int64;
 
-{** Adds or subtracts an offset to a date.
-If a date offset o is to be added to or subtracted from a date d, for dates
-prior to 1900 it is not possible to do it simply with d+o and d-o, due to the
-way dates prior to 1900 are encoded; see TDateTime for details.<p>
-AddDateTime adds Offset, which may be negative, to Date. Offset is the number of
-days that will be added to Date. Thus, for example, AddDateTime(Date,-1.25)
-subtracts one day and six hours from Date. To add months or years to the date
-use the Delphi IncMonth function.
-@author A.X.
-@SeeAlso <See Routine=SubtractDateTime>
-@SeeAlso <Jump File=Delphi5.hlp K="TDateTime type" Text=TDateTime>
-@SeeAlso <Jump File=Delphi5.hlp K="IncMonth function" Text=IncMonth>
-}
+///	<summary>
+///	  Adds or subtracts an offset to a date
+///	</summary>
+///	<remarks>
+///	  If a date offset <c>o</c> is to be added to or subtracted from a date
+///	  <c>d</c>, for dates prior to 1900 it is not possible to do it simply with
+///	  <c>d+o</c> and <c>d-o</c>, due to the way dates prior to 1900 are
+///	  encoded; see <see cref="TDateTime" /> for details. <c>AddDateTime</c>
+///	  adds <c>Offset</c>, which may be negative, to <c>Date</c>. <c>Offset</c>
+///	  is the number of days that will be added to <c>Date</c>. Thus, for
+///	  example, <c>AddDateTime(Date, -1.25)</c> subtracts one day and six hours
+///	  from <c>Date</c>. To add months or years to the date use the Delphi
+///	  <see href="IncMonth" /> function.
+///	</remarks>
 function AddDateTime(Date: TDateTime; Offset: Real): TDateTime;
 
 type
   TGetDateFormatOption = (gdfRaiseOnFail, gdfAllowHydrologicalYear);
   TGetDateFormatOptions = set of TGetDateFormatOption;
 
-{** Determines the format of a date and time in a string.
-
-Use GetDateFormat when you must read a date or time from a string but do not
-know the date's format. GetDateFormat reads the string which is supposed to
-contain a date and/or time, and returns a string representing the format of
-that date and time. If the string's format cannot be recognized, GetDateFormat
-raises an exception if gdfRaiseOnFail is set in Options; otherwise, it returns
-an empty string.<p>
-The following are recognizable formats:<p>
-<ul>
-  <li>A date in ShortDateFormat optionally followed by a time in
-      ShortTimeFormat.  These variables are described in <Jump File=Delphi5.hlp
-      K="date/time formatting variables" Text="date/time formatting
-      variables">; the defaults are what is set in the Windows Control Panel.
-  <li>YYYY-MM-DD HH:mm
-  <li>YYYY-MM-DD
-  <li>YYYY/MM
-  <li>YYYY-MM
-  <li>YYYY-YY (hydrological year)
-  <li>YYYY
-</ul>
-<p>
-If AllowHydrologicalYear is contained in Options, then XXXX-XX is interpreted
-as YYYY-YY, where YY is YYYY+1; if the latter condition is not true, the string
-is not recognized as a date. If AllowHydrologicalYear is not specified, then
-XXXX-XX is interpreted as YYYY-MM (where, of course, MM must be between 01 and
-12, otherwise the string is unrecognized).<p>
-All date separators are equivalent, except for the case of hydrological year,
-where the separator must be a hyphen. In addition, the separator returned
-might not always be the separator in DateString (this is a bug).<p>
-The return value is a date/time formatting string, except in the case of a
-hydrological year, in which case the return value is 'aaaa-bb'.<p>
-Note: GetDateFormat's implementation is terrible; it uses exceptions to
-make testing, which makes it extremely slow. If you really want to use
-it in a loop, you must change the implementation.<p>
-@author A.X.
-@SeeAlso <Jump File=Delphi5.hlp K="FormatDateTime function" Text=FormatDateTime>
-}
+///	<summary>
+///	  Determines the format of a date and time in a string
+///	</summary>
+///	<remarks>
+///	  <para>
+///	    Use <c>GetDateFormat</c> when you must read a date or time from a
+///	    string but do not know the date's format. <c>GetDateFormat</c> reads
+///	    the string, which is supposed to contain a date and/or time, and
+///	    returns a string representing the format of that date and time. If the
+///	    string's format cannot be recognized, <c>GetDateFormat</c> raises an
+///	    exception if <c>gdfRaiseOnFail</c> is set in <c>Options</c>; otherwise,
+///	    it returns an empty string.
+///	  </para>
+///	  <para>
+///	    The following are recognizable formats:
+///	  </para>
+///	  <list type="bullet">
+///	    <item>
+///	      A date in <see cref="ShortDateFormat" /> optionally followed by a
+///	      time in <see cref="ShortTimeFormat" />.
+///	    </item>
+///	    <item>
+///	      <c>YYYY-MM-DD HH:mm</c>
+///	    </item>
+///	    <item>
+///	      <c>YYYY-MM-DD</c>
+///	    </item>
+///	    <item>
+///	      <c>YYYY/MM</c>
+///	    </item>
+///	    <item>
+///	      <c>YYYY-MM</c>
+///	    </item>
+///	    <item>
+///	      <c>YYYY-YY</c> (hydrological year)
+///	    </item>
+///	    <item>
+///	      <c>YYYY</c>
+///	    </item>
+///	  </list>
+///	  <para>
+///	    If <c>AllowHydrologicalYear</c> is contained in <c>Options</c>, then
+///	    <c>XXXX-XX</c> is interpreted as <c>YYYY-YY</c>, where <c>YY</c> is
+///	    <c>YYYY+1</c>; if the latter condition is not true, the string is not
+///	    recognized as a date. If <c>AllowHydrologicalYear</c> is not specified,
+///	    then <c>XXXX-XX</c> is interpreted as <c>YYYY-MM</c> (where, of course,
+///	    <c>MM</c> must be between <c>01</c> and <c>12</c>, otherwise the string
+///	    is unrecognized).
+///	  </para>
+///	  <para>
+///	    All date separators are equivalent, except for the case of hydrological
+///	    year, where the separator must be a hyphen. In addition, the separator
+///	    returned might not always be the separator in <c>DateString</c> (this
+///	    is a bug).
+///	  </para>
+///	  <para>
+///	    The return value is a date/time formatting string, except in the case
+///	    of a hydrological year, in which case the return value is 'aaaa-bb'.
+///	  </para>
+///	  <para>
+///	    Note: <c>GetDateFormat</c>'s implementation is terrible; it uses
+///	    exceptions to make testing, which makes it extremely slow. If you
+///	    really want to use it in a loop, you must change the implementation.
+///	  </para>
+///	</remarks>
 function GetDateFormat(DateString: string; Options: TGetDateFormatOptions;
   HYearOrigin: Integer=10): string;
 
-{** Converts a hydrological year representation to a TDateTime variable.
-    DateString must be of the form yyyy-zz, where zz is yyyy+1. If not,
-    HYearToDate raises an exception. Otherwise, HYearToDate returns a
-    TDateTime that corresponds to yyyy-10-01 00:00.
-}
+///	<summary>
+///	  Converts a hydrological year representation to a <see cref="TDateTime" />
+///	  variable
+///	</summary>
+///	<remarks>
+///	  DateString must be of the form yyyy-zz, where zz is yyyy+1. If not,
+///	  HYearToDate raises an exception. Otherwise, HYearToDate returns a
+///	  TDateTime that corresponds to yyyy-10-01 00:00.
+///	</remarks>
 function HYearToDate(DateString: string; HYearOrigin: Integer=10): TDateTime;
 
-{** Returns four-digit year given two-digit year.
-GetFullYear converts a two-digit year into a four-digit year. It uses the global
-variable TwoDigitYearCenturyWindow to decide which century to use.
-@SeeAlso <Jump file=Delphi5.hlp K="TwoDigitYearCenturyWindow variable" Text=TwoDigitYearCenturyWindow>
-}
+///	<summary>
+///	  Returns four-digit year given two-digit year
+///	</summary>
+///	<remarks>
+///	  GetFullYear converts a two-digit year into a four-digit year. It uses the
+///	  global variable TwoDigitYearCenturyWindow to decide which century to use.
+///	</remarks>
 function GetFullYear(TwoDigitYear: Word): Word;
 
-{** Finds hydrological year to which a date belongs.
-    If the hydrological year to which ADate belongs is YYYY-ZZ, where ZZ=YYYY+1,
-    FindHydrologicalYear returns YYYY.
-}
+///	<summary>
+///	  Finds hydrological year to which a date belongs
+///	</summary>
+///	<remarks>
+///	  If the hydrological year to which ADate belongs is YYYY-ZZ, where
+///	  ZZ=YYYY+1, FindHydrologicalYear returns YYYY.
+///	</remarks>
 function FindHydrologicalYear(ADate: TDateTime; HYearOrigin: Integer=10):
   Integer;
 
 type
 
-  {** Maintains a list of TDateTimes.
-      TDateTimeList stores a (usually ordered) list of dates and times. Since
-      TDateTime=Double, TDateTimeList inherits TFloatList but has some
-      additional methods.
-      @author A.X.
-      @SeeAlso <See Class=TFloatList>
-  }
+  ///	<summary>
+  ///	  Maintains a list of TDateTimes
+  ///	</summary>
+  ///	<remarks>
+  ///	  TDateTimeList stores a (usually ordered) list of dates and times. Since
+  ///	  TDateTime=Double, TDateTimeList inherits TFloatList but has some
+  ///	  additional methods.
+  ///	</remarks>
   TDateTimeList = class(TFloatList)
   protected
     function Get(Index: Integer): TDateTime; virtual;
@@ -205,29 +277,41 @@ type
     function Add(Item: TDateTime): Integer; virtual;
     function IndexOf(Item: TDateTime): Integer;
     procedure Insert(Index: Integer; Item: TDateTime); virtual;
-    {** Inserts an object to the Items array at the correct chronological
-        position.
-	InsertSorted inserts an entry at the correct position of the Items array
-	and returns the index of that position.
-    }
+
+    ///	<summary>
+    ///	  Inserts an object to the Items array at the correct chronological
+    ///	  position
+    ///	</summary>
+    ///	<remarks>
+    ///	  InsertSorted inserts an entry at the correct position of the Items
+    ///	  array and returns the index of that position.
+    ///	</remarks>
     function InsertSorted(Item: TDateTime): Integer; virtual;
-    {** Returns the index of the entry that is greater than or equal to Item.
-	PositionOfNext is much like IndexOf, but works even if the specified
-        date does not exist in the Items array.  If the date exists,
-        PositionOfNext returns its index, just like IndexOf. If it does not
-        exist, then it returns the index of the first record that is greater
-        than Item. If Item is greater than the last entry, PositionOfNext
-        returns -1.
-    }
+
+    ///	<summary>
+    ///	  Returns the index of the entry that is greater than or equal to Item
+    ///	</summary>
+    ///	<remarks>
+    ///	  PositionOfNext is much like IndexOf, but works even if the specified
+    ///	  date does not exist in the Items array. If the date exists,
+    ///	  PositionOfNext returns its index, just like IndexOf. If it does not
+    ///	  exist, then it returns the index of the first record that is greater
+    ///	  than Item. If Item is greater than the last entry, PositionOfNext
+    ///	  returns -1.
+    ///	</remarks>
     function PositionOfNext(Item: TDateTime): Integer;
-    {** Returns the index of the entry that is less than or equal to Item.
-	PositionOfPrevious is much like IndexOf, but works even if the specified
-        date does not exist in the Items array.  If the date exists,
-        PositionOfPrevious returns its index, just like IndexOf. If it does not
-        exist, then it returns the index of the last record that is less
-        than Item. If Item is less than the first entry, PositionOfNext
-        returns -1.
-    }
+
+    ///	<summary>
+    ///	  Returns the index of the entry that is less than or equal to Item
+    ///	</summary>
+    ///	<remarks>
+    ///	  PositionOfPrevious is much like IndexOf, but works even if the
+    ///	  specified date does not exist in the Items array. If the date exists,
+    ///	  PositionOfPrevious returns its index, just like IndexOf. If it does
+    ///	  not exist, then it returns the index of the last record that is less
+    ///	  than Item. If Item is less than the first entry, PositionOfNext
+    ///	  returns -1.
+    ///	</remarks>
     function PositionOfPrevious(Item: TDateTime): Integer;
     function Remove(Item: TDateTime): Integer; virtual;
   end;
@@ -308,10 +392,13 @@ type
 function FormatStrToDateTime(const Format, DateString: string;
   HYearOrigin: Integer=10): TDateTime;
 
-{** Months between two dates based in the formula
-   (year2-year1)*12+(month2-month1) and the decodedate system function.
-   Works only for year1, year2>=1 AD
-}
+///	<summary>
+///	  Months between two dates
+///	</summary>
+///	<remarks>
+///	  Returns <c>(y1 - y2) * 12 + (m1 - m2)</c>. Does not work for negative
+///	  years (before 1 AD).
+///	</remarks>
 function DiffInMonths(ADate1, ADate2: TDateTime): Integer;
 
 implementation
@@ -807,8 +894,8 @@ var
 begin
   DecodeDate(ADate1, Year1, Month1, Day);
   DecodeDate(ADate2, Year2, Month2, Day);
-  Assert((Year1>0) and (Year2>0), 'Years should be >=1 AD');
-  Result := (Year2-Year1)*12+(Month2-Month1);
+  Assert((Year1 > 0) and (Year2 > 0), 'Years should be >=1 AD');
+  Result := (Year1-Year2) * 12 + (Month1 - Month2);
 end;
 
 end.
