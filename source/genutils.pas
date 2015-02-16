@@ -40,25 +40,45 @@ type
 }
 function GetSpecialFolderPath(folder : integer) : string;
 
-{** Returns version of a file.
-GetFileVersionStr returns a string which specifies the file's version numbers
-separated by dots. The precise format of the string is specified by Format.
-If Format=ver2Items, the version major and minor numbers are returned. If
-Format=ver3Items, the release number is also returned. If Format=ver4Items,
-the build number is also returned. Finally, if Format=ver3ItemsPlusParentheses,
-the string has the format 'major.minor.release (.build)'.
-
-Use GetFileVersionStr(ParamStr(0), ...) to get the application's version.
-@author A.X.
-@SeeAlso GetFileVersion
-}
+///	<summary>
+///	  Returns version of a file.
+///	</summary>
+///	<remarks>
+///	  <para>
+///	    Returns a string which specifies the file's version numbers separated
+///	    by dots. The precise format of the string is specified by <c>Format</c>.
+///	     If <c>Format=ver2Items</c>, the version major and minor numbers are
+///	    returned. If <c>Format=ver3Items</c>, the release number is also
+///	    returned. If <c>Format=ver4Items</c>, the build number is also
+///	    returned. Finally, if <c>Format=ver3ItemsPlusParentheses</c>, the
+///	    string has the format 'major.minor.release (.build)'.
+///	  </para>
+///	  <para>
+///	    If the file has no version information, it returns "dev". 
+///	  </para>
+///	  <para>
+///	    See also <see cref="GetFileVersion" />.
+///	  </para>
+///	</remarks>
 function GetFileVersionStr(FileName: string; Format: TVersionFormat): string;
 
-{** VersionComp compares two version strings.
-    VersionComp transform the version strings from xx.y.zzz.www to
-    a xxxx.yyyy.zzzz.wwww form, then it use the standard string compare
-    and returns zero if equal or >0, <0, respectively.
-}
+///	<summary>
+///	  Compares two version strings.
+///	</summary>
+///	<remarks>
+///	  <para>
+///	    Returns zero, positive or negative if <c>AVer1</c> is equal to, greater
+///	    than or less than <c>AVer2</c>.
+///	  </para>
+///	  <para>
+///	    Version "dev", or any malformed version string, is always considered
+///	    less than a normal version (this is because if a program checks for new
+///	    versions, and accidentally a release manager uploads version "dev", and
+///	    users download it, there would be a big mess if "dev" was considered
+///	    greater; the program would never, ever again, find a new version when
+///	    checking).
+///	  </para>
+///	</remarks>
 function VersionComp(AVer1, AVer2: string): Integer;
 
 {** Converts a boolean value to a string.
@@ -183,7 +203,7 @@ type
       TFloatPairList is similar to TList, but stores a pair of Doubles rather than
       pointers. Its methods and properties have similar functionality to those
       of TList.
-      @author A.X., G.K. 
+      @author A.X., G.K.
       @SeeAlso <Jump File=Del5Vcl.hlp K="TList," Text=TList>
    }
   TFloatPairList = class(TPersistent)
@@ -244,7 +264,7 @@ type
       @SeeAlso <See Routine=Decrypt>
   }
   function Encrypt(const s: string; Key: Word): string;
-  {** Decrypt the string encrypted with the Encrypt function. 
+  {** Decrypt the string encrypted with the Encrypt function.
       @SeeAlso <See Routine=Encrypt>
   }
   function Decrypt (const s: string; Key: Word): string;
@@ -278,15 +298,13 @@ function GetFileVersionStr(FileName: string; Format: TVersionFormat): string;
 var
   Major, Minor, Release, Build: Integer;
   p, p1: Pointer;
-  Size, ErrorCode, DummyDWord: DWord;
+  Size, DummyDWord: DWord;
   DummyUInt: UInt;
 begin
+  Result := 'dev';
   Size := GetFileVersionInfoSize(PChar(FileName), DummyDWord);
   if Size=0 then
-  begin
-    ErrorCode := GetLastError;
-    raise Exception.Create (rsCannotGetFileVersionInfo+IntToStr(ErrorCode));
-  end;
+    Exit;
   GetMem(p, Size);
   try
     GetFileVersionInfo(PChar(FileName), DummyDWord, Size, p);
@@ -313,23 +331,45 @@ end;
 {$WARN UNSAFE_TYPE ON}
 {$WARN UNSAFE_CODE ON}
 
+function NormalizeVersion(AVersionString: string): string;
+var
+  i: Integer;
+  s: string;
+begin
+  Result := '';
+  try
+    while Length(AVersionString) > 0 do
+    begin
+      i := Pos('.', AVersionString);
+      if i = 0 then
+        i := Length(AVersionString) + 1;
+      s := Copy(AVersionString, 1, i - 1);
+      Result := Result + Format('%.4d', [StrToInt(s)]);
+      if i >= Length(AVersionString) then
+        Exit;
+      AVersionString := Copy(AVersionString, i + 1, Length(AVersionString));
+    end;
+  except
+    on EConvertError do
+    begin
+      Result := '';
+      Exit;
+    end;
+  end;
+end;
+
 function VersionComp(AVer1, AVer2: string): Integer;
 var
-  i, j: Integer;
-  s1, s2, s: string;
+  s1, s2: string;
 begin
-  s1 := '';
-  s2 := '';
-  for i := 1 to 4 do
-  begin
-    s := DelimitedStringItem(AVer1, i, '.');
-    j := StrToInt(s);
-    s1 := s1+Format('%.4d', [j]);
-    s := DelimitedStringItem(AVer2, i, '.');
-    j := StrToInt(s);
-    s2 := s2+Format('%.4d', [j]);
-  end;
-  Result := StrComp(PChar(s1), PChar(s2));
+  s1 := NormalizeVersion(AVer1);
+  s2 := NormalizeVersion(AVer2);
+  if s1 > s2 then
+    Result := 1
+  else if s1 < s2 then
+    Result := -1
+  else
+    Result := 0;
 end;
 
 function BoolToStr(Value: Boolean): string;

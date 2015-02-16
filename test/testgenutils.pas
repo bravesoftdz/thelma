@@ -8,11 +8,13 @@ type
   TTestGenUtils = class(TTestCase)
   published
     procedure TestFloatPairListSort1;
+    procedure TestGetFileVersionStr;
+    procedure TestVersionComp;
   end;
 
 implementation
 
-uses SysUtils, genutils;
+uses SysUtils, Windows, GenUtils;
 
 type TTestArray = array[1..10,1..2] of Real;
 
@@ -57,6 +59,46 @@ begin
   end;
   AFloatPairList.Sort1;
   Check(CompareFloatPairLists(AFloatPairList, ASortedFloatPairListData, 1e-4));
+end;
+
+function StringCount(s: string; c: Char): Integer;
+var
+  i: Integer;
+begin
+  Result := 0;
+  for i := 0 to Length(s)-1 do
+    if c = s[i] then
+      Inc(Result);
+end;
+
+procedure TTestGenUtils.TestGetFileVersionStr;
+var
+  dir: array[0..MAX_PATH] of Char;
+  FileName, VersionStr: string;
+begin
+  // Examine C:\Windows\explorer.exe; result should be 4 dot-separated numbers
+  GetWindowsDirectory(dir, MAX_PATH);
+  FileName := dir + '\explorer.exe';
+  VersionStr := GetFileVersionStr(FileName, ver4Items);
+  CheckEquals(StringCount(VersionStr, '.'), 3);
+
+  // Examine thelmaTests.exe; result should be "dev"
+  FileName := ParamStr(0);
+  VersionStr := GetFileVersionStr(FileName, ver4Items);
+  CheckEquals(VersionStr, 'dev');
+end;
+
+procedure TTestGenUtils.TestVersionComp;
+begin
+  CheckEquals(VersionComp('1.0.0.0', '2.0.0.0'), -1);
+  CheckEquals(VersionComp('2.0.0.0', '1.0.0.0'), 1);
+  CheckEquals(VersionComp('3.0.0.0', '3.0.0.0'), 0);
+  CheckEquals(VersionComp('3.0.1.0', '3.0.0.0'), 1);
+  CheckEquals(VersionComp('3.0.0.1', '3.0.0.2'), -1);
+  CheckEquals(VersionComp('2.0.0.0', '10.0.0.0'), -1);
+  CheckEquals(VersionComp('dev', '0.0.0.0'), -1);
+  CheckEquals(VersionComp('1.0.0', '2.0.0'), -1);
+  CheckEquals(VersionComp('1.2.3.4.5.6.7.8', '1.2.3.4.5.6.7.10'), -1);
 end;
 
 initialization
